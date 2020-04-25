@@ -1,4 +1,5 @@
-﻿using JogoDoGalo_Server.Models;
+﻿using EI.SI;
+using JogoDoGalo_Server.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -140,7 +141,7 @@ namespace JogoDoGalo
                     //Explicação: Uma vez
                     Invoke(new Action(() =>
                     {
-                        tb_Mensagens.AppendText(message + Environment.NewLine);
+                        rtb_Mensagens.AppendText(message + Environment.NewLine);
                     }));
                     
                 }

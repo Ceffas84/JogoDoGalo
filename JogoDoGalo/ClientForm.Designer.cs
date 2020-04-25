@@ -36,7 +36,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.bt_EnviaMensagem = new System.Windows.Forms.Button();
             this.tb_EscreveMensagem = new System.Windows.Forms.TextBox();
-            this.lb_Mensagens = new System.Windows.Forms.ListBox();
             this.bt_Autenticar = new System.Windows.Forms.Button();
             this.tb_Password = new System.Windows.Forms.TextBox();
             this.tb_Jogador = new System.Windows.Forms.TextBox();
@@ -44,23 +43,14 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.bt_Celula9 = new System.Windows.Forms.Button();
-            this.bt_Celula7 = new System.Windows.Forms.Button();
-            this.bt_Celula8 = new System.Windows.Forms.Button();
-            this.bt_Celula3 = new System.Windows.Forms.Button();
-            this.bt_Celula5 = new System.Windows.Forms.Button();
-            this.bt_Celula6 = new System.Windows.Forms.Button();
-            this.bt_Celula4 = new System.Windows.Forms.Button();
-            this.bt_Celula1 = new System.Windows.Forms.Button();
-            this.bt_Celula2 = new System.Windows.Forms.Button();
-            this.panel1.SuspendLayout();
+            this.rtb_Mensagens = new System.Windows.Forms.RichTextBox();
+            this.label_chat = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(79, 402);
-            this.button1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button1.Margin = new System.Windows.Forms.Padding(2);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(56, 19);
             this.button1.TabIndex = 34;
@@ -121,9 +111,9 @@
             // bt_EnviaMensagem
             // 
             this.bt_EnviaMensagem.Location = new System.Drawing.Point(482, 386);
-            this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2);
             this.bt_EnviaMensagem.Name = "bt_EnviaMensagem";
-            this.bt_EnviaMensagem.Size = new System.Drawing.Size(236, 19);
+            this.bt_EnviaMensagem.Size = new System.Drawing.Size(236, 35);
             this.bt_EnviaMensagem.TabIndex = 28;
             this.bt_EnviaMensagem.Text = "Enviar Mensagem";
             this.bt_EnviaMensagem.UseVisualStyleBackColor = true;
@@ -131,36 +121,27 @@
             // 
             // tb_EscreveMensagem
             // 
-            this.tb_EscreveMensagem.Location = new System.Drawing.Point(482, 319);
-            this.tb_EscreveMensagem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tb_EscreveMensagem.Location = new System.Drawing.Point(482, 345);
+            this.tb_EscreveMensagem.Margin = new System.Windows.Forms.Padding(2);
             this.tb_EscreveMensagem.Multiline = true;
             this.tb_EscreveMensagem.Name = "tb_EscreveMensagem";
             this.tb_EscreveMensagem.Size = new System.Drawing.Size(236, 37);
             this.tb_EscreveMensagem.TabIndex = 27;
             // 
-            // lb_Mensagens
-            // 
-            this.lb_Mensagens.FormattingEnabled = true;
-            this.lb_Mensagens.Location = new System.Drawing.Point(482, 209);
-            this.lb_Mensagens.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.lb_Mensagens.Name = "lb_Mensagens";
-            this.lb_Mensagens.Size = new System.Drawing.Size(236, 95);
-            this.lb_Mensagens.TabIndex = 26;
-            // 
             // bt_Autenticar
             // 
-            this.bt_Autenticar.Location = new System.Drawing.Point(482, 171);
-            this.bt_Autenticar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.bt_Autenticar.Location = new System.Drawing.Point(545, 147);
+            this.bt_Autenticar.Margin = new System.Windows.Forms.Padding(2);
             this.bt_Autenticar.Name = "bt_Autenticar";
-            this.bt_Autenticar.Size = new System.Drawing.Size(236, 19);
+            this.bt_Autenticar.Size = new System.Drawing.Size(173, 29);
             this.bt_Autenticar.TabIndex = 25;
-            this.bt_Autenticar.Text = "Atualizar";
+            this.bt_Autenticar.Text = "Autenticar";
             this.bt_Autenticar.UseVisualStyleBackColor = true;
             // 
             // tb_Password
             // 
             this.tb_Password.Location = new System.Drawing.Point(545, 123);
-            this.tb_Password.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tb_Password.Margin = new System.Windows.Forms.Padding(2);
             this.tb_Password.Name = "tb_Password";
             this.tb_Password.Size = new System.Drawing.Size(173, 20);
             this.tb_Password.TabIndex = 24;
@@ -168,7 +149,7 @@
             // tb_Jogador
             // 
             this.tb_Jogador.Location = new System.Drawing.Point(545, 87);
-            this.tb_Jogador.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tb_Jogador.Margin = new System.Windows.Forms.Padding(2);
             this.tb_Jogador.Name = "tb_Jogador";
             this.tb_Jogador.Size = new System.Drawing.Size(173, 20);
             this.tb_Jogador.TabIndex = 23;
@@ -176,7 +157,7 @@
             // tb_Servidor
             // 
             this.tb_Servidor.Location = new System.Drawing.Point(545, 46);
-            this.tb_Servidor.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tb_Servidor.Margin = new System.Windows.Forms.Padding(2);
             this.tb_Servidor.Name = "tb_Servidor";
             this.tb_Servidor.Size = new System.Drawing.Size(173, 20);
             this.tb_Servidor.TabIndex = 22;
@@ -211,100 +192,32 @@
             this.label1.TabIndex = 19;
             this.label1.Text = "Servidor";
             // 
-            // panel1
+            // rtb_Mensagens
             // 
-            this.panel1.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.panel1.Controls.Add(this.bt_Celula9);
-            this.panel1.Controls.Add(this.bt_Celula7);
-            this.panel1.Controls.Add(this.bt_Celula8);
-            this.panel1.Controls.Add(this.bt_Celula3);
-            this.panel1.Controls.Add(this.bt_Celula5);
-            this.panel1.Controls.Add(this.bt_Celula6);
-            this.panel1.Controls.Add(this.bt_Celula4);
-            this.panel1.Controls.Add(this.bt_Celula1);
-            this.panel1.Controls.Add(this.bt_Celula2);
-            this.panel1.Location = new System.Drawing.Point(111, 56);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(433, 267);
-            this.panel1.TabIndex = 18;
+            this.rtb_Mensagens.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.rtb_Mensagens.Location = new System.Drawing.Point(482, 242);
+            this.rtb_Mensagens.Name = "rtb_Mensagens";
+            this.rtb_Mensagens.ReadOnly = true;
+            this.rtb_Mensagens.Size = new System.Drawing.Size(236, 96);
+            this.rtb_Mensagens.TabIndex = 35;
+            this.rtb_Mensagens.Text = "";
             // 
-            // bt_Celula9
+            // label_chat
             // 
-            this.bt_Celula9.Location = new System.Drawing.Point(272, 169);
-            this.bt_Celula9.Name = "bt_Celula9";
-            this.bt_Celula9.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula9.TabIndex = 16;
-            this.bt_Celula9.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula7
-            // 
-            this.bt_Celula7.Location = new System.Drawing.Point(94, 169);
-            this.bt_Celula7.Name = "bt_Celula7";
-            this.bt_Celula7.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula7.TabIndex = 15;
-            this.bt_Celula7.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula8
-            // 
-            this.bt_Celula8.Location = new System.Drawing.Point(183, 169);
-            this.bt_Celula8.Name = "bt_Celula8";
-            this.bt_Celula8.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula8.TabIndex = 14;
-            this.bt_Celula8.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula3
-            // 
-            this.bt_Celula3.Location = new System.Drawing.Point(272, 27);
-            this.bt_Celula3.Name = "bt_Celula3";
-            this.bt_Celula3.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula3.TabIndex = 13;
-            this.bt_Celula3.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula5
-            // 
-            this.bt_Celula5.Location = new System.Drawing.Point(183, 98);
-            this.bt_Celula5.Name = "bt_Celula5";
-            this.bt_Celula5.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula5.TabIndex = 12;
-            this.bt_Celula5.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula6
-            // 
-            this.bt_Celula6.Location = new System.Drawing.Point(272, 98);
-            this.bt_Celula6.Name = "bt_Celula6";
-            this.bt_Celula6.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula6.TabIndex = 11;
-            this.bt_Celula6.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula4
-            // 
-            this.bt_Celula4.Location = new System.Drawing.Point(94, 98);
-            this.bt_Celula4.Name = "bt_Celula4";
-            this.bt_Celula4.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula4.TabIndex = 10;
-            this.bt_Celula4.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula1
-            // 
-            this.bt_Celula1.Location = new System.Drawing.Point(94, 27);
-            this.bt_Celula1.Name = "bt_Celula1";
-            this.bt_Celula1.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula1.TabIndex = 9;
-            this.bt_Celula1.UseVisualStyleBackColor = true;
-            // 
-            // bt_Celula2
-            // 
-            this.bt_Celula2.Location = new System.Drawing.Point(183, 27);
-            this.bt_Celula2.Name = "bt_Celula2";
-            this.bt_Celula2.Size = new System.Drawing.Size(65, 65);
-            this.bt_Celula2.TabIndex = 1;
-            this.bt_Celula2.UseVisualStyleBackColor = true;
+            this.label_chat.AutoSize = true;
+            this.label_chat.Location = new System.Drawing.Point(479, 226);
+            this.label_chat.Name = "label_chat";
+            this.label_chat.Size = new System.Drawing.Size(81, 13);
+            this.label_chat.TabIndex = 36;
+            this.label_chat.Text = "Chat Jogadores";
             // 
             // ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label_chat);
+            this.Controls.Add(this.rtb_Mensagens);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label6);
@@ -313,7 +226,6 @@
             this.Controls.Add(this.label4);
             this.Controls.Add(this.bt_EnviaMensagem);
             this.Controls.Add(this.tb_EscreveMensagem);
-            this.Controls.Add(this.lb_Mensagens);
             this.Controls.Add(this.bt_Autenticar);
             this.Controls.Add(this.tb_Password);
             this.Controls.Add(this.tb_Jogador);
@@ -321,8 +233,7 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.panel1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "ClientForm";
             this.Text = "Jogo do Galo - Cliente";
             this.ResumeLayout(false);
@@ -340,7 +251,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button bt_EnviaMensagem;
         private System.Windows.Forms.TextBox tb_EscreveMensagem;
-        private System.Windows.Forms.ListBox lb_Mensagens;
         private System.Windows.Forms.Button bt_Autenticar;
         private System.Windows.Forms.TextBox tb_Password;
         private System.Windows.Forms.TextBox tb_Jogador;
@@ -348,16 +258,8 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Button bt_Celula9;
-        private System.Windows.Forms.Button bt_Celula7;
-        private System.Windows.Forms.Button bt_Celula8;
-        private System.Windows.Forms.Button bt_Celula3;
-        private System.Windows.Forms.Button bt_Celula5;
-        private System.Windows.Forms.Button bt_Celula6;
-        private System.Windows.Forms.Button bt_Celula4;
-        private System.Windows.Forms.Button bt_Celula1;
-        private System.Windows.Forms.Button bt_Celula2;
+        private System.Windows.Forms.RichTextBox rtb_Mensagens;
+        private System.Windows.Forms.Label label_chat;
     }
 }
 
