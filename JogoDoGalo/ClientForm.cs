@@ -25,7 +25,6 @@ namespace JogoDoGalo
         IPEndPoint ipEndPoint;
         NetworkStream networkStream;
         ProtocolSI protocolSI;
-        private string recivedData;
         public ClientForm()
         {
             InitializeComponent();
@@ -126,22 +125,38 @@ namespace JogoDoGalo
         private void Read(object obj)
         {
             TcpClient tcpClient = (TcpClient)obj;
-            StreamReader reader = new StreamReader(tcpClient.GetStream());
+            networkStream = tcpClient.GetStream();
 
-            while (true)
+            while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 try
                 {
-                    string message = reader.ReadLine();
-                    //Console.WriteLine(message);
+                    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
 
-                    //O código abaixo serve para utilizar elementos do ClientForm apartir de outra thread.
-                    //Explicação: Uma vez
-                    Invoke(new Action(() =>
+                    byte[] ack;
+                    switch (protocolSI.GetCmdType())
                     {
-                        rtb_Mensagens.AppendText(message + Environment.NewLine);
-                    }));
-                    
+                        case ProtocolSICmdType.DATA:
+                            string message = protocolSI.GetStringFromData();
+
+                            //O código abaixo serve para utilizar elementos do ClientForm apartir de outra thread.
+                            //Explicação: Uma vez que os elementos do form só podem ser chamados pela thread
+                            //que executa o form.
+                            Invoke(new Action(() =>
+                            {
+                                rtb_Mensagens.AppendText(message + Environment.NewLine);
+                            }));
+
+                            ack = protocolSI.Make(ProtocolSICmdType.ACK);
+                            networkStream.Write(ack, 0, ack.Length);
+                            networkStream.Flush();
+                            break;
+                        case ProtocolSICmdType.EOT:
+                            ack = protocolSI.Make(ProtocolSICmdType.ACK);
+                            networkStream.Write(ack, 0, ack.Length);
+                            networkStream.Flush();
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -155,21 +170,13 @@ namespace JogoDoGalo
         {
             if (tcpClient.Connected)
             {
-                StreamWriter writer = new StreamWriter(tcpClient.GetStream());
+                networkStream = tcpClient.GetStream();
                 string msg = tb_EscreveMensagem.Text;
                 tb_EscreveMensagem.Clear();
-
-                rtb_Mensagens.SelectionAlignment = HorizontalAlignment.Right;
-                rtb_Mensagens.AppendText(msg);
-
-                writer.WriteLine(msg);
-                writer.Flush();
+                byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, msg);
+                networkStream.Write(packet, 0, packet.Length);
+                networkStream.Flush();
             }
-            //preparar a mensagem para ser enviada
-            
-            //byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, msg);
-
-            //enviar a mensagem
         }
     }
 }
