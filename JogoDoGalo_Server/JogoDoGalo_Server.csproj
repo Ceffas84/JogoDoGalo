@@ -46,8 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     <Compile Include="Models\Estado.cs" />
     <Compile Include="Models\Jogada.cs" />
     <Compile Include="Models\Jogador.cs" />
