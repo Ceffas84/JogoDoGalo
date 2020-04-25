@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -42,12 +43,26 @@ namespace JogoDoGalo_Server
 
         private static void ClientListener(object obj)
         {
-            
+            TcpClient tcpClient = (TcpClient)obj;
+            StreamReader reader = new StreamReader(tcpClient.GetStream());
+
+            //Console.WriteLine("Client connected");
+            while (true)
+            {
+                string message = reader.ReadLine();
+                BroadCast(message, tcpClient);
+                Console.WriteLine(message);
+            }
         }
-    }
 
-    class ClientHandler
-    {
-
+        private static void BroadCast(string msg, TcpClient excludetcpClient)
+        {
+            foreach (TcpClient client in tcpClientsList)
+            {
+                StreamWriter writer = new StreamWriter(client.GetStream());
+                writer.WriteLine(msg);
+                writer.Flush();
+            }
+        }
     }
 }
