@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ProtocolSI">
+      <HintPath>..\..\ProtocolSI\ProtocolSI.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,11 +46,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< Updated upstream
     <Compile Include="Models\Estado.cs" />
     <Compile Include="Models\Jogada.cs" />
     <Compile Include="Models\Jogador.cs" />
     <Compile Include="Models\JogoGalo.cs" />
     <Compile Include="Program.cs" />
+=======
+    <Compile Include="Server.cs" />
+>>>>>>> Stashed changes
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
