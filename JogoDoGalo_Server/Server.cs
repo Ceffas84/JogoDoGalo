@@ -44,24 +44,45 @@ namespace JogoDoGalo_Server
         private static void ClientListener(object obj)
         {
             TcpClient tcpClient = (TcpClient)obj;
-            StreamReader reader = new StreamReader(tcpClient.GetStream());
+            NetworkStream networkStream = tcpClient.GetStream();
+            ProtocolSI protocolSI = new ProtocolSI();
+
 
             //Console.WriteLine("Client connected");
-            while (true)
+            while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
-                string message = reader.ReadLine();
-                BroadCast(message, tcpClient);
-                Console.WriteLine(message);
+                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+                byte[] ack;
+
+                switch (protocolSI.GetCmdType())
+                {
+                    case ProtocolSICmdType.DATA:
+                        string message = protocolSI.GetStringFromData();
+                        ack = protocolSI.Make(ProtocolSICmdType.ACK);
+                        networkStream.Write(ack, 0, ack.Length);
+                        BroadCast(message, tcpClient);
+                        Console.WriteLine(message);
+                        break;
+                    case ProtocolSICmdType.EOT:
+                        Console.WriteLine("Client_ disconnected.");
+                        ack = protocolSI.Make(ProtocolSICmdType.ACK);
+                        networkStream.Write(ack, 0, ack.Length);
+                        break;
+                }
+  
             }
         }
 
         private static void BroadCast(string msg, TcpClient excludetcpClient)
         {
+            ProtocolSI protocolSI = new ProtocolSI();
+            byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, msg);
+
             foreach (TcpClient client in tcpClientsList)
             {
-                StreamWriter writer = new StreamWriter(client.GetStream());
-                writer.WriteLine(msg);
-                writer.Flush();
+                NetworkStream networkStream = client.GetStream();
+                networkStream.Write(packet, 0, packet.Length);
+                networkStream.Flush();
             }
         }
     }
