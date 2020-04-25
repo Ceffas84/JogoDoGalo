@@ -44,24 +44,29 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.rtb_Mensagens = new System.Windows.Forms.RichTextBox();
-            this.label_chat = new System.Windows.Forms.Label();
+            this.gBoxServer = new System.Windows.Forms.GroupBox();
+            this.gBoxChat = new System.Windows.Forms.GroupBox();
+            this.gBoxPlayers = new System.Windows.Forms.GroupBox();
+            this.gBoxServer.SuspendLayout();
+            this.gBoxChat.SuspendLayout();
+            this.gBoxPlayers.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(79, 402);
+            this.button1.Location = new System.Drawing.Point(623, 26);
             this.button1.Margin = new System.Windows.Forms.Padding(2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(56, 19);
+            this.button1.Size = new System.Drawing.Size(121, 19);
             this.button1.TabIndex = 34;
-            this.button1.Text = "button1";
+            this.button1.Text = "Botao Teste Jogo";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(255, 343);
+            this.label8.Location = new System.Drawing.Point(427, 34);
             this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(46, 13);
@@ -71,7 +76,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(174, 355);
+            this.label6.Location = new System.Drawing.Point(133, 55);
             this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(43, 13);
@@ -81,7 +86,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(77, 355);
+            this.label7.Location = new System.Drawing.Point(36, 55);
             this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(43, 13);
@@ -91,7 +96,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(174, 325);
+            this.label5.Location = new System.Drawing.Point(133, 25);
             this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(54, 13);
@@ -101,7 +106,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(77, 325);
+            this.label4.Location = new System.Drawing.Point(36, 25);
             this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(54, 13);
@@ -110,10 +115,10 @@
             // 
             // bt_EnviaMensagem
             // 
-            this.bt_EnviaMensagem.Location = new System.Drawing.Point(482, 386);
+            this.bt_EnviaMensagem.Location = new System.Drawing.Point(7, 357);
             this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2);
             this.bt_EnviaMensagem.Name = "bt_EnviaMensagem";
-            this.bt_EnviaMensagem.Size = new System.Drawing.Size(236, 35);
+            this.bt_EnviaMensagem.Size = new System.Drawing.Size(237, 35);
             this.bt_EnviaMensagem.TabIndex = 28;
             this.bt_EnviaMensagem.Text = "Enviar Mensagem";
             this.bt_EnviaMensagem.UseVisualStyleBackColor = true;
@@ -121,7 +126,7 @@
             // 
             // tb_EscreveMensagem
             // 
-            this.tb_EscreveMensagem.Location = new System.Drawing.Point(482, 345);
+            this.tb_EscreveMensagem.Location = new System.Drawing.Point(7, 316);
             this.tb_EscreveMensagem.Margin = new System.Windows.Forms.Padding(2);
             this.tb_EscreveMensagem.Multiline = true;
             this.tb_EscreveMensagem.Name = "tb_EscreveMensagem";
@@ -130,7 +135,7 @@
             // 
             // bt_Autenticar
             // 
-            this.bt_Autenticar.Location = new System.Drawing.Point(545, 147);
+            this.bt_Autenticar.Location = new System.Drawing.Point(70, 91);
             this.bt_Autenticar.Margin = new System.Windows.Forms.Padding(2);
             this.bt_Autenticar.Name = "bt_Autenticar";
             this.bt_Autenticar.Size = new System.Drawing.Size(173, 29);
@@ -140,7 +145,7 @@
             // 
             // tb_Password
             // 
-            this.tb_Password.Location = new System.Drawing.Point(545, 123);
+            this.tb_Password.Location = new System.Drawing.Point(70, 67);
             this.tb_Password.Margin = new System.Windows.Forms.Padding(2);
             this.tb_Password.Name = "tb_Password";
             this.tb_Password.Size = new System.Drawing.Size(173, 20);
@@ -148,7 +153,7 @@
             // 
             // tb_Jogador
             // 
-            this.tb_Jogador.Location = new System.Drawing.Point(545, 87);
+            this.tb_Jogador.Location = new System.Drawing.Point(70, 43);
             this.tb_Jogador.Margin = new System.Windows.Forms.Padding(2);
             this.tb_Jogador.Name = "tb_Jogador";
             this.tb_Jogador.Size = new System.Drawing.Size(173, 20);
@@ -156,7 +161,7 @@
             // 
             // tb_Servidor
             // 
-            this.tb_Servidor.Location = new System.Drawing.Point(545, 46);
+            this.tb_Servidor.Location = new System.Drawing.Point(70, 19);
             this.tb_Servidor.Margin = new System.Windows.Forms.Padding(2);
             this.tb_Servidor.Name = "tb_Servidor";
             this.tb_Servidor.Size = new System.Drawing.Size(173, 20);
@@ -165,7 +170,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(479, 125);
+            this.label3.Location = new System.Drawing.Point(5, 70);
             this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(53, 13);
@@ -175,7 +180,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(479, 87);
+            this.label2.Location = new System.Drawing.Point(5, 46);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(45, 13);
@@ -185,7 +190,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(479, 46);
+            this.label1.Location = new System.Drawing.Point(5, 22);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(46, 13);
@@ -195,49 +200,74 @@
             // rtb_Mensagens
             // 
             this.rtb_Mensagens.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.rtb_Mensagens.Location = new System.Drawing.Point(482, 242);
+            this.rtb_Mensagens.Location = new System.Drawing.Point(8, 19);
             this.rtb_Mensagens.Name = "rtb_Mensagens";
             this.rtb_Mensagens.ReadOnly = true;
-            this.rtb_Mensagens.Size = new System.Drawing.Size(236, 96);
+            this.rtb_Mensagens.Size = new System.Drawing.Size(236, 292);
             this.rtb_Mensagens.TabIndex = 35;
             this.rtb_Mensagens.Text = "";
             // 
-            // label_chat
+            // gBoxServer
             // 
-            this.label_chat.AutoSize = true;
-            this.label_chat.Location = new System.Drawing.Point(479, 226);
-            this.label_chat.Name = "label_chat";
-            this.label_chat.Size = new System.Drawing.Size(81, 13);
-            this.label_chat.TabIndex = 36;
-            this.label_chat.Text = "Chat Jogadores";
+            this.gBoxServer.Controls.Add(this.bt_Autenticar);
+            this.gBoxServer.Controls.Add(this.label1);
+            this.gBoxServer.Controls.Add(this.label2);
+            this.gBoxServer.Controls.Add(this.label3);
+            this.gBoxServer.Controls.Add(this.tb_Servidor);
+            this.gBoxServer.Controls.Add(this.tb_Jogador);
+            this.gBoxServer.Controls.Add(this.tb_Password);
+            this.gBoxServer.Location = new System.Drawing.Point(600, 50);
+            this.gBoxServer.Name = "gBoxServer";
+            this.gBoxServer.Size = new System.Drawing.Size(250, 125);
+            this.gBoxServer.TabIndex = 37;
+            this.gBoxServer.TabStop = false;
+            this.gBoxServer.Text = "Ligação";
+            // 
+            // gBoxChat
+            // 
+            this.gBoxChat.Controls.Add(this.rtb_Mensagens);
+            this.gBoxChat.Controls.Add(this.tb_EscreveMensagem);
+            this.gBoxChat.Controls.Add(this.bt_EnviaMensagem);
+            this.gBoxChat.Location = new System.Drawing.Point(600, 200);
+            this.gBoxChat.Name = "gBoxChat";
+            this.gBoxChat.Size = new System.Drawing.Size(250, 400);
+            this.gBoxChat.TabIndex = 38;
+            this.gBoxChat.TabStop = false;
+            this.gBoxChat.Text = "Chat Jogadores";
+            // 
+            // gBoxPlayers
+            // 
+            this.gBoxPlayers.Controls.Add(this.label6);
+            this.gBoxPlayers.Controls.Add(this.label4);
+            this.gBoxPlayers.Controls.Add(this.label5);
+            this.gBoxPlayers.Controls.Add(this.label7);
+            this.gBoxPlayers.Controls.Add(this.label8);
+            this.gBoxPlayers.Location = new System.Drawing.Point(50, 500);
+            this.gBoxPlayers.Name = "gBoxPlayers";
+            this.gBoxPlayers.Size = new System.Drawing.Size(500, 100);
+            this.gBoxPlayers.TabIndex = 36;
+            this.gBoxPlayers.TabStop = false;
+            this.gBoxPlayers.Text = "Jogadores";
             // 
             // ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.label_chat);
-            this.Controls.Add(this.rtb_Mensagens);
+            this.ClientSize = new System.Drawing.Size(884, 661);
+            this.Controls.Add(this.gBoxPlayers);
+            this.Controls.Add(this.gBoxChat);
+            this.Controls.Add(this.gBoxServer);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.bt_EnviaMensagem);
-            this.Controls.Add(this.tb_EscreveMensagem);
-            this.Controls.Add(this.bt_Autenticar);
-            this.Controls.Add(this.tb_Password);
-            this.Controls.Add(this.tb_Jogador);
-            this.Controls.Add(this.tb_Servidor);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "ClientForm";
             this.Text = "Jogo do Galo - Cliente";
+            this.gBoxServer.ResumeLayout(false);
+            this.gBoxServer.PerformLayout();
+            this.gBoxChat.ResumeLayout(false);
+            this.gBoxChat.PerformLayout();
+            this.gBoxPlayers.ResumeLayout(false);
+            this.gBoxPlayers.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -259,7 +289,9 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.RichTextBox rtb_Mensagens;
-        private System.Windows.Forms.Label label_chat;
+        private System.Windows.Forms.GroupBox gBoxServer;
+        private System.Windows.Forms.GroupBox gBoxChat;
+        private System.Windows.Forms.GroupBox gBoxPlayers;
     }
 }
 
