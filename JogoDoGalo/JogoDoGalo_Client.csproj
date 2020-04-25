@@ -55,6 +55,10 @@
     <Compile Include="ClientForm.Designer.cs">
       <DependentUpon>ClientForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Estado.cs" />
+    <Compile Include="Models\Jogada.cs" />
+    <Compile Include="Models\Jogador.cs" />
+    <Compile Include="Models\JogoGalo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ClientForm.resx">
