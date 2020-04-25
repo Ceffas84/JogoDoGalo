@@ -76,7 +76,6 @@ namespace JogoDoGalo_Server.Models
 
             //Coloca na VezJogador o próximo jogador
             this.AlternarVez();
-
             return jogada;
         }
         public bool Ganhou(Jogador jogador)
