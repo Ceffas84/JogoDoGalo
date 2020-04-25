@@ -47,11 +47,15 @@
   </ItemGroup>
   <ItemGroup>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     <Compile Include="Models\Estado.cs" />
     <Compile Include="Models\Jogada.cs" />
     <Compile Include="Models\Jogador.cs" />
     <Compile Include="Models\JogoGalo.cs" />
     <Compile Include="Program.cs" />
+=======
+    <Compile Include="Server.cs" />
+>>>>>>> Stashed changes
 =======
     <Compile Include="Server.cs" />
 >>>>>>> Stashed changes
