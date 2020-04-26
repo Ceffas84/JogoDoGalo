@@ -80,11 +80,11 @@ namespace JogoDoGalo_Server
                         networkStream.Write(iv, 0, iv.Length);
                         break;
                     case ProtocolSICmdType.DATA:
-                        string message = protocolSI.GetStringFromData();
+                        byte[] encryptedMsg = protocolSI.GetData();
                         ack = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(ack, 0, ack.Length);
-                        BroadCast(message, tcpClient);
-                        Console.WriteLine(message);
+                        BroadCast(encryptedMsg, tcpClient);
+                        //Console.WriteLine(Convert.ToBase64String(symetricDecryption(encryptedMsg)));
                         break;
                     case ProtocolSICmdType.EOT:
                         Console.WriteLine("Client_ disconnected.");
@@ -95,10 +95,10 @@ namespace JogoDoGalo_Server
             }
         }
 
-        private static void BroadCast(string msg, TcpClient excludetcpClient)
+        private static void BroadCast(byte[] encryptedMsg, TcpClient excludetcpClient)
         {
             ProtocolSI protocolSI = new ProtocolSI();
-            byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, msg);
+            byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
 
             foreach (Player player in playersList)
             {
@@ -137,6 +137,41 @@ namespace JogoDoGalo_Server
             byte[] arrEncriptado = rsa.Encrypt(arr, true);
 
             return arrEncriptado;
+        }
+
+        private static byte[] symetricEncryption(byte[] arr)
+        {
+            byte[] encryptedArr;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                {
+                    cs.Write(arr, 0, arr.Length);
+                    //cs.Close();
+                }
+                //guardar os dados cifrados que estão em memória
+                encryptedArr = ms.ToArray();
+                //ms.Close();
+            }
+            return encryptedArr;
+        }
+
+        private static byte[] symetricDecryption(byte[] encryptedArr)
+        {
+            byte[] decryptedArr;
+
+            MemoryStream ms = new MemoryStream(encryptedArr);
+
+            CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
+
+            decryptedArr = new byte[ms.Length];
+
+            cs.Read(decryptedArr, 0, decryptedArr.Length);
+
+            cs.Close();
+            ms.Close();
+            return decryptedArr;
         }
     }
 }
