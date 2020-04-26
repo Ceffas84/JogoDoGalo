@@ -20,7 +20,8 @@ namespace JogoDoGalo_Server
         private static List<Player> playersList = new List<Player>();
         private static string secret = "abcd";
         private static AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-        
+        private static RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+
         static void Main(string[] args)
         {
             //declaração das variáveis
@@ -91,7 +92,6 @@ namespace JogoDoGalo_Server
                         networkStream.Write(ack, 0, ack.Length);
                         break;
                 }
-  
             }
         }
 
@@ -132,7 +132,6 @@ namespace JogoDoGalo_Server
 
         private static byte[] assymetricCipher(byte[] arr, string publicKey)
         {
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(publicKey);
 
             byte[] arrEncriptado = rsa.Encrypt(arr, true);
