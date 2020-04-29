@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\ClientHandler.cs" />
     <Compile Include="Models\Estado.cs" />
     <Compile Include="Models\Jogada.cs" />
     <Compile Include="Models\Jogador.cs" />

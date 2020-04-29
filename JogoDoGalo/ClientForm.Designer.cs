@@ -43,10 +43,11 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.rtb_Mensagens = new System.Windows.Forms.RichTextBox();
+            this.rtbMensagens = new System.Windows.Forms.RichTextBox();
             this.gBoxServer = new System.Windows.Forms.GroupBox();
             this.gBoxChat = new System.Windows.Forms.GroupBox();
             this.gBoxPlayers = new System.Windows.Forms.GroupBox();
+            this.btnAddClient = new System.Windows.Forms.Button();
             this.gBoxServer.SuspendLayout();
             this.gBoxChat.SuspendLayout();
             this.gBoxPlayers.SuspendLayout();
@@ -197,15 +198,15 @@
             this.label1.TabIndex = 19;
             this.label1.Text = "Servidor";
             // 
-            // rtb_Mensagens
+            // rtbMensagens
             // 
-            this.rtb_Mensagens.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.rtb_Mensagens.Location = new System.Drawing.Point(8, 19);
-            this.rtb_Mensagens.Name = "rtb_Mensagens";
-            this.rtb_Mensagens.ReadOnly = true;
-            this.rtb_Mensagens.Size = new System.Drawing.Size(236, 292);
-            this.rtb_Mensagens.TabIndex = 35;
-            this.rtb_Mensagens.Text = "";
+            this.rtbMensagens.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.rtbMensagens.Location = new System.Drawing.Point(8, 19);
+            this.rtbMensagens.Name = "rtbMensagens";
+            this.rtbMensagens.ReadOnly = true;
+            this.rtbMensagens.Size = new System.Drawing.Size(236, 292);
+            this.rtbMensagens.TabIndex = 35;
+            this.rtbMensagens.Text = "";
             // 
             // gBoxServer
             // 
@@ -225,7 +226,7 @@
             // 
             // gBoxChat
             // 
-            this.gBoxChat.Controls.Add(this.rtb_Mensagens);
+            this.gBoxChat.Controls.Add(this.rtbMensagens);
             this.gBoxChat.Controls.Add(this.tb_EscreveMensagem);
             this.gBoxChat.Controls.Add(this.bt_EnviaMensagem);
             this.gBoxChat.Location = new System.Drawing.Point(600, 200);
@@ -249,11 +250,23 @@
             this.gBoxPlayers.TabStop = false;
             this.gBoxPlayers.Text = "Jogadores";
             // 
+            // btnAddClient
+            // 
+            this.btnAddClient.Location = new System.Drawing.Point(658, 617);
+            this.btnAddClient.Margin = new System.Windows.Forms.Padding(2);
+            this.btnAddClient.Name = "btnAddClient";
+            this.btnAddClient.Size = new System.Drawing.Size(121, 19);
+            this.btnAddClient.TabIndex = 39;
+            this.btnAddClient.Text = "Adicionar Cliente";
+            this.btnAddClient.UseVisualStyleBackColor = true;
+            this.btnAddClient.Click += new System.EventHandler(this.btnAddClient_Click);
+            // 
             // ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(884, 661);
+            this.Controls.Add(this.btnAddClient);
             this.Controls.Add(this.gBoxPlayers);
             this.Controls.Add(this.gBoxChat);
             this.Controls.Add(this.gBoxServer);
@@ -261,6 +274,8 @@
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "ClientForm";
             this.Text = "Jogo do Galo - Cliente";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ClientForm_FormClosing);
+            this.Load += new System.EventHandler(this.ClientForm_Load);
             this.gBoxServer.ResumeLayout(false);
             this.gBoxServer.PerformLayout();
             this.gBoxChat.ResumeLayout(false);
@@ -288,10 +303,11 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.RichTextBox rtb_Mensagens;
+        private System.Windows.Forms.RichTextBox rtbMensagens;
         private System.Windows.Forms.GroupBox gBoxServer;
         private System.Windows.Forms.GroupBox gBoxChat;
         private System.Windows.Forms.GroupBox gBoxPlayers;
+        private System.Windows.Forms.Button btnAddClient;
     }
 }
 

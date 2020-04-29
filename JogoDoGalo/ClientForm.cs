@@ -1,5 +1,4 @@
 ﻿using EI.SI;
-using JogoDoGalo_Server.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,14 +18,14 @@ namespace JogoDoGalo
 {
     public partial class ClientForm : Form
     {
-        private JogoGalo Galo;
-
+        private int dimensaoTabuleiro = 3;
         private const int PORT = 10000;
         TcpClient tcpClient;
         IPEndPoint ipEndPoint;
         NetworkStream networkStream;
         ProtocolSI protocolSI;
         RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+        private string publicKey;
         AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
         private byte[] decryptedSecretKey;
         private byte[] decryptedIV;
@@ -43,157 +42,81 @@ namespace JogoDoGalo
             //preparação da comunicação utilizando a class ProtocolSI
             protocolSI = new ProtocolSI();
 
-            string publicKey = rsa.ToXmlString(false);
-            byte[] publicKeyPacket = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
-            networkStream.Write(publicKeyPacket, 0, publicKeyPacket.Length);
-            
-            Thread thread = new Thread(Read);
-            thread.Start(tcpClient);
         }
-        public void IniciarJogo()
+        private void ServerLisneter(object obj)
         {
-            List<Jogador> listaJogadores = new List<Jogador>();
-            listaJogadores.Add(new Jogador("Ricardo", 'X'));
-            listaJogadores.Add(new Jogador("Nuno", 'O'));
-
-            int dimensaoTabuleiro = 4;
-
-            Galo = new JogoGalo(dimensaoTabuleiro, listaJogadores);
-
-            DesenharTabuleiro(100, 50, 400, Galo.DimensaoTabuleiro);
-        }
-        private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
-        {
-            int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
-            int buttonSize = (size - (padding * (numButtons +1))) / numButtons;
-            for (int I = 0; I < Galo.DimensaoTabuleiro; I++)
-            {
-                for (int J = 0; J < Galo.DimensaoTabuleiro; J++)
-                {
-                    Button newButton = new Button();
-                    newButton.Text = "";
-                    newButton.Name = I + "_" + J;
-                    newButton.Location = new Point(offset_x + padding + (I * (padding + buttonSize)), offset_y + padding + (J * (padding + buttonSize)));
-                    newButton.Width = buttonSize;
-                    newButton.Height = buttonSize;
-                    newButton.BackColor = System.Drawing.Color.LightGray;
-                    newButton.Click += Tabuleiro_Click;
-                    this.Controls.Add(newButton);
-                }
-            }
-        }
-        private void Tabuleiro_Click(object sender, EventArgs e)
-        {
-            if (Galo.Estado == Estado.GameOver)
-            {
-                return;
-            }
-
-            Button clickedButton = sender as Button;
-            List<int> coord = GetClickedButton(clickedButton);
-
-            if (Galo.JogadaExiste(coord[0], coord[1]))
-            {
-                System.Media.SystemSounds.Beep.Play();
-                return;
-            }
-
-            //Cria-se e introduz-se a jogada
-            Jogada jogadaIntroduzida = Galo.AdicionarJogada(coord[0], coord[1]);
-
-            //Atualiza-se o botão com o simbolo do jogador que jogou
-            clickedButton.Text = jogadaIntroduzida.Jogador.Simbolo.ToString();
-
-            //Verifica-se se o jogador ganhou o jogo
-            if (Galo.Ganhou(jogadaIntroduzida.Jogador))
-            {
-                Galo.Estado = Estado.GameOver;
-                MessageBox.Show("Ganhou: " + jogadaIntroduzida.Jogador.Nome + " em " + jogadaIntroduzida.Jogador.NumJogadas + " jogadas!", "GameOver -");
-                return;
-            }
-            //Verifica se foi a ultima jogada
-            if (Galo.ListaJogadas.Count() == Galo.MaxJogadas)
-            {
-                Galo.Estado = Estado.GameOver;
-                System.Media.SystemSounds.Beep.Play();
-                MessageBox.Show("Jogo terminou empatado", "GameOver");
-            }
-        }
-        private List<int> GetClickedButton(Button clickedButton)
-        {
-            string[] a = clickedButton.Name.Split('_');
-            List<int> coord = new List<int>();
-            coord.Add(int.Parse(a[1]));
-            coord.Add(int.Parse(a[0]));
-            return coord;
-        }
-        private void button1_Click(object sender, EventArgs e)
-        {
-            IniciarJogo();
-        }
-        private void Read(object obj)
-        {
-            TcpClient tcpClient = (TcpClient)obj;
+            TcpClient tcpClient = (TcpClient) obj;
             networkStream = tcpClient.GetStream();
-
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 try
                 {
                     networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-                    byte[] secretKeyEncrypted;
-                    byte[] ivEncrypted;
-                    byte[] ack;
                     switch (protocolSI.GetCmdType())
                     {
                         case ProtocolSICmdType.SECRET_KEY:
-                            secretKeyEncrypted = protocolSI.GetBuffer();
-                            ack = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(ack, 0, ack.Length);
+                            //Recebe a Chave Simétrica do ProtocolSI
+                            byte[] secretKeyEncrypted = protocolSI.GetData();
+                            string str_secret = Convert.ToBase64String(secretKeyEncrypted);
 
-                            //atribui a key ao objecto aes
-                            aes.Key = rsa.Decrypt(secretKeyEncrypted, true);
+                            //Desencripta e atribui a key ao objecto aes
+                            decryptedSecretKey = rsa.Decrypt(secretKeyEncrypted, true);
+                            string str_symkey = Convert.ToBase64String(decryptedSecretKey);
+                            aes.Key = decryptedSecretKey;
+
+                            //Imprime na consola do Form o Vetor de Inicialização
+                            Invoke(new Action(() => {
+                                Console.WriteLine("Chave simetrica desencriptada: {0}", Convert.ToBase64String(aes.Key));
+                            }));
+
+                            SendAcknowledged(protocolSI, networkStream);
                             break;
                         case ProtocolSICmdType.IV:
-                            ivEncrypted = protocolSI.GetBuffer();
-                            ack = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(ack, 0, ack.Length);
+                            //Recebe o Vetor de Inicialização do ProtocolSI
+                            byte[] ivEncrypted = protocolSI.GetData();
 
                             //atribui o iv ao objecto aes
-                            aes.IV = rsa.Decrypt(ivEncrypted, true);
+                            decryptedIV = rsa.Decrypt(ivEncrypted, true);
+                            string str_iv = Convert.ToBase64String(decryptedIV);
+                            aes.IV = decryptedIV;
+
+                            //Imprime na consola do Form o Vetor de Inicialização
+                            Invoke(new Action(() => { 
+                                Console.WriteLine("Chave simetrica desencriptada: {0}", Convert.ToBase64String(aes.IV)); 
+                            }));
+
+                            SendAcknowledged(protocolSI, networkStream);
                             break;
                         case ProtocolSICmdType.DATA:
-                            string message = Encoding.UTF8.GetString(symetricDecryption(protocolSI.GetData()));
+                            byte[] encriptedMsg = protocolSI.GetData();
+                            SendAcknowledged(protocolSI, networkStream);
 
+                            byte[] decryptedMsg = symetricDecryption(encriptedMsg);
+
+                            string message = Encoding.UTF8.GetString(decryptedMsg, 0, decryptedMsg.Length);
                             //O código abaixo serve para utilizar elementos do ClientForm apartir de outra thread.
                             //Explicação: Uma vez que os elementos do form só podem ser chamados pela thread
                             //que executa o form.
-                            Invoke(new Action(() =>
-                            {
-                                rtb_Mensagens.AppendText(message);
-                                rtb_Mensagens.AppendText(Environment.NewLine);
+                            Invoke(new Action(() => {
+                                rtbMensagens.AppendText(message); rtbMensagens.AppendText(Environment.NewLine);
                             }));
 
-                            ack = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(ack, 0, ack.Length);
-                            networkStream.Flush();
+
                             break;
                         case ProtocolSICmdType.EOT:
-                            ack = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(ack, 0, ack.Length);
-                            networkStream.Flush();
+                            SendAcknowledged(protocolSI, networkStream);
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK);
-                    //Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.HResult);
                     break;
                 }
             }
         }
-
         private byte[] symetricEncryption(byte[] arr)
         {
             byte[] encryptedArr;
@@ -211,7 +134,6 @@ namespace JogoDoGalo
             }
             return encryptedArr;
         }
-
         private byte[] symetricDecryption(byte[] encryptedArr)
         {
             byte[] decryptedArr;
@@ -228,7 +150,6 @@ namespace JogoDoGalo
             ms.Close();
             return decryptedArr;
         }
-
         private void bt_EnviaMensagem_Click(object sender, EventArgs e)
         {
             if (tcpClient.Connected)
@@ -239,8 +160,109 @@ namespace JogoDoGalo
                 byte[] encryptedMsg = symetricEncryption(Encoding.UTF8.GetBytes(msg));
                 byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
                 networkStream.Write(packet, 0, packet.Length);
+                //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+                //{
+                //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+                //}
                 networkStream.Flush();
+                rtbMensagens.AppendText("Eu: " + msg + Environment.NewLine);
+                
             }
+        }
+        public void SendAcknowledged(ProtocolSI propotcolSi, NetworkStream networkStream)
+        {
+            byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);
+            networkStream.Write(ack, 0, ack.Length);
+            networkStream.Flush();
+        }
+        //
+        //Código para teste do jogo no tabuleiro
+        //
+        private void btnAddClient_Click(object sender, EventArgs e)
+        {
+            ClientForm newcliente = new ClientForm();
+            newcliente.Show();
+        }
+        public void IniciarJogo()
+        {
+            DesenharTabuleiro(100, 50, 400, 3);
+        }
+        private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
+        {
+            int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
+            int buttonSize = (size - (padding * (numButtons + 1))) / numButtons;
+            for (int I = 0; I < dimensaoTabuleiro; I++)
+            {
+                for (int J = 0; J < dimensaoTabuleiro; J++)
+                {
+                    Button newButton = new Button();
+                    newButton.Text = "";
+                    newButton.Name = I + "_" + J;
+                    newButton.Location = new Point(offset_x + padding + (I * (padding + buttonSize)), offset_y + padding + (J * (padding + buttonSize)));
+                    newButton.Width = buttonSize;
+                    newButton.Height = buttonSize;
+                    newButton.BackColor = System.Drawing.Color.LightGray;
+                    newButton.Click += Tabuleiro_Click;
+                    this.Controls.Add(newButton);
+                }
+            }
+        }
+        private void Tabuleiro_Click(object sender, EventArgs e)
+        {
+
+            Button clickedButton = sender as Button;
+            List<int> coord = GetClickedButton(clickedButton);
+
+
+
+            //Cria-se e introduz-se a jogada
+
+            //Atualiza-se o botão com o simbolo do jogador que jogou
+
+            //clickedButton.Text = jogadaIntroduzida.Jogador.Simbolo.ToString();
+
+            //Verifica-se se o jogador ganhou o jogo
+
+            //Verifica se foi a ultima jogada
+
+        }
+        private List<int> GetClickedButton(Button clickedButton)
+        {
+            string[] a = clickedButton.Name.Split('_');
+            List<int> coord = new List<int>();
+            coord.Add(int.Parse(a[1]));
+            coord.Add(int.Parse(a[0]));
+            return coord;
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            IniciarJogo();
+        }
+
+        private void ClientForm_Load(object sender, EventArgs e)
+        {
+            //Exporta e envia a public key para o servidor
+            publicKey = rsa.ToXmlString(false);
+            byte[] publicKeyPacket = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
+            networkStream.Write(publicKeyPacket, 0, publicKeyPacket.Length);
+            while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            {
+                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            }
+
+            Thread thread = new Thread(ServerLisneter);
+            thread.Start(tcpClient);
+        }
+
+        private void ClientForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //Preparar o envio da mensagem para desligar as ligações
+            byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
+            networkStream.Write(eot, 0, eot.Length);
+            networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+
+            this.networkStream.Close();
+            this.tcpClient.Close();
         }
     }
 }

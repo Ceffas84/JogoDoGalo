@@ -14,6 +14,7 @@ namespace JogoDoGalo_Server.Models
         public byte[] Salt { get; set; }
         public byte[] HashUsername { set; get; }
         public byte[] HashPassword { set; get; }
+        public int PlayerID { get; set; }
         public Player()
         {
 
