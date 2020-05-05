@@ -1,6 +1,7 @@
 ﻿using EI.SI;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -17,8 +18,9 @@ namespace JogoDoGalo_Server.Models
         private Player Player;
         private int ClientID;
         private List<Player> PlayersList;
-        private RSACryptoServiceProvider rsa;
-        private AesCryptoServiceProvider aes;
+        private RSACryptoServiceProvider Rsa;
+        private AesCryptoServiceProvider Aes;
+        Authentication Auth;
         private ProtocolSI protocolSI;
         
         public ClientHandler(Player player, int clientID, List<Player> playerList)
@@ -27,8 +29,9 @@ namespace JogoDoGalo_Server.Models
             this.Player.PlayerID = clientID;
             this.ClientID = clientID;
             this.PlayersList = playerList;
-            this.rsa = new RSACryptoServiceProvider();
-            this.aes = new AesCryptoServiceProvider();
+            this.Rsa = new RSACryptoServiceProvider();
+            this.Aes = new AesCryptoServiceProvider();
+            this.Auth = new Authentication();
             this.protocolSI = new ProtocolSI();
         }
         public void Handle()
@@ -44,11 +47,13 @@ namespace JogoDoGalo_Server.Models
             NetworkStream networkStream = tcpClient.GetStream();
 
             //Gerar a key e o iv para a criptografia simétrica
-            aes.Key = generateKey(secret);
-            Console.WriteLine("Generated Simetric Key: {0}", Convert.ToBase64String(aes.Key));
-            aes.IV = generateIV(secret);
-            Console.WriteLine("Generated Initialization Vector: {0}", Convert.ToBase64String(aes.IV));
-            byte[] encrypteMsg;
+            Aes.Key = generateKey(secret);
+            Console.WriteLine("Generated Simetric Key: {0}", Convert.ToBase64String(Aes.Key));
+            Aes.IV = generateIV(secret);
+            Console.WriteLine("Generated Initialization Vector: {0}", Convert.ToBase64String(Aes.IV));
+            Console.WriteLine();
+            byte[] encrypteData;
+            byte[] decryptedData;
 
             //Console.WriteLine("Client connected");
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
@@ -61,37 +66,38 @@ namespace JogoDoGalo_Server.Models
                         //Recebe a public key do client
                         player.PublicKey = protocolSI.GetStringFromData();
                         SendAcknowledged(protocolSI, networkStream);
+
                         //Imprime na consola a public key recebida
-                        Console.WriteLine();
                         Console.WriteLine("Chave pública recebida: {0}", player.PublicKey);
+                        Console.WriteLine();
 
                         //Constrói e envia para o cliente a secretKey encriptada com a chave pública
-                        byte[] encryptedKey = RsaEncryption(aes.Key, player.PublicKey);
-                        encrypteMsg = protocolSI.Make(ProtocolSICmdType.SECRET_KEY, encryptedKey);
-                        networkStream.Write(encrypteMsg, 0, encrypteMsg.Length);
+                        byte[] encryptedKey = RsaEncryption(Aes.Key, player.PublicKey);
+                        encrypteData = protocolSI.Make(ProtocolSICmdType.SECRET_KEY, encryptedKey);
+                        networkStream.Write(encrypteData, 0, encrypteData.Length);
                         while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
                         {
                             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
                         }
 
                         //Imprime na consola a chave simetrica encriptada enviada
-                        Console.WriteLine();
                         Console.WriteLine("Chave simétrica encriptada com a chave publica do cliente enviada!");
                         Console.WriteLine(Convert.ToBase64String(encryptedKey));
-                        
+                        Console.WriteLine();
+
                         //Constrói e envia para o cliente o vetor inicialização encriptado com a chave pública
-                        byte[] encryptedIV = RsaEncryption(aes.IV, player.PublicKey);
-                        encrypteMsg = protocolSI.Make(ProtocolSICmdType.IV, encryptedIV);
-                        networkStream.Write(encrypteMsg, 0, encrypteMsg.Length);
+                        byte[] encryptedIV = RsaEncryption(Aes.IV, player.PublicKey);
+                        encrypteData = protocolSI.Make(ProtocolSICmdType.IV, encryptedIV);
+                        networkStream.Write(encrypteData, 0, encrypteData.Length);
                         while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
                         {
                             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
                         }
 
                         //Imprime na consola a chave simetrica encriptada enviada
-                        Console.WriteLine();
                         Console.WriteLine("Vetor de inicialização encriptado com a chave publica do cliente enviado!");
                         Console.WriteLine(Convert.ToBase64String(encryptedIV));
+                        Console.WriteLine();
                         break;
 
                     case ProtocolSICmdType.DATA:
@@ -101,11 +107,31 @@ namespace JogoDoGalo_Server.Models
                         File.AppendAllText(Server.FILEPATH, msg);
                         Console.WriteLine(msg);
 
-                        BroadCast(decryptedMsg, tcpClient);
+                        BroadCast(decryptedData, tcpClient);
 
                         SendAcknowledged(protocolSI, networkStream);
                         break;
+                    case ProtocolSICmdType.USER_OPTION_1:
+                        encrypteData = protocolSI.GetData();
+                        byte[] username = symetricDecryption(encrypteData);
+                        SendAcknowledged(protocolSI, networkStream);
+                        break;
+                    //while (protocolSI.GetCmdType() != ProtocolSICmdType.USER_OPTION_2)
+                    //{
+                    //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+                    //}
 
+                    case ProtocolSICmdType.USER_OPTION_2:
+                        encrypteData = protocolSI.GetData();
+                        byte[] password = symetricDecryption(encrypteData);
+                        SendAcknowledged(protocolSI, networkStream);
+
+                        Authentication auth = new Authentication();
+                        if(auth.VerifyLogin(Convert.ToBase64String(username), Convert.ToBase64String(password)))
+                        {
+                            Console.WriteLine("Cliente não registado");
+                        }
+                        break;
                     case ProtocolSICmdType.EOT:
                         Console.WriteLine("Client_{0} disconnected.", ClientID);
                         PlayersList.Remove(this.Player);
@@ -129,6 +155,7 @@ namespace JogoDoGalo_Server.Models
                     byte[] player_plus_message = MsgLine(player, msg);
                     string message_str = Encoding.UTF8.GetString(player_plus_message);
                     byte[] encryptedMsg = symetricEncryption(player_plus_message);
+
                     byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
 
                     networkStream.Write(packet, 0, packet.Length);
@@ -137,7 +164,6 @@ namespace JogoDoGalo_Server.Models
                 }
             }
         }
-
         private byte[] MsgLine(Player player, byte[] msg)
         {
             string player_plus_message = "Jogador " + player.PlayerID + ": " + Encoding.UTF8.GetString(msg);
@@ -168,9 +194,9 @@ namespace JogoDoGalo_Server.Models
 
         private byte[] RsaEncryption(byte[] arr, string publicKey)
         {
-            rsa.FromXmlString(publicKey);
+            Rsa.FromXmlString(publicKey);
 
-            byte[] arrEncriptado = rsa.Encrypt(arr, true);
+            byte[] arrEncriptado = Rsa.Encrypt(arr, true);
 
             return arrEncriptado;
         }
@@ -181,7 +207,7 @@ namespace JogoDoGalo_Server.Models
 
             using (MemoryStream ms = new MemoryStream())
             {
-                using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (CryptoStream cs = new CryptoStream(ms, Aes.CreateEncryptor(), CryptoStreamMode.Write))
                 {
                     cs.Write(arr, 0, arr.Length);
                     //cs.Close();
@@ -199,7 +225,7 @@ namespace JogoDoGalo_Server.Models
 
             MemoryStream ms = new MemoryStream(encryptedArr);
 
-            CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
+            CryptoStream cs = new CryptoStream(ms, Aes.CreateDecryptor(), CryptoStreamMode.Read);
 
             decryptedArr = new byte[ms.Length];
 
