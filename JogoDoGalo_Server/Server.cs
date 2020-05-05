@@ -18,6 +18,7 @@ namespace JogoDoGalo_Server
         private const int PORT = 10000;
         private static TcpListener tcpListener;
         private static List<Player> playersList = new List<Player>();
+        public const string FILEPATH = "chatLog.txt";
         static void Main(string[] args)
         {
             //declaração das variáveis
@@ -27,6 +28,7 @@ namespace JogoDoGalo_Server
 
             //iniciar o servidor
             tcpListener.Start();
+            File.AppendAllText(FILEPATH, "SERVER IS READY" + Environment.NewLine);
             Console.WriteLine("SERVER IS READY");
             Console.WriteLine();
 
@@ -36,7 +38,9 @@ namespace JogoDoGalo_Server
                 Player player = new Player();
                 player.TcpClient = tcpListener.AcceptTcpClient();
                 playersList.Add(player);
-
+                
+                string connectedClient = "Client "+ playersList.Count() + " connected." + Environment.NewLine;
+                File.AppendAllText(FILEPATH, connectedClient);
                 Console.WriteLine("Client {0} connected", playersList.Count());
 
                 //Lança uma thread com um listner
