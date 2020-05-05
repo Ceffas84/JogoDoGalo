@@ -18,7 +18,7 @@ namespace JogoDoGalo
 {
     public partial class ClientForm : Form
     {
-        private int dimensaoTabuleiro = 3;
+        private static int dimensaoTabuleiro = 3;
         private const int PORT = 10000;
         TcpClient tcpClient;
         IPEndPoint ipEndPoint;
@@ -33,7 +33,7 @@ namespace JogoDoGalo
         {
             InitializeComponent();
 
-            ipEndPoint = new IPEndPoint(IPAddress.Loopback, PORT);
+            ipEndPoint = new IPEndPoint(IPAddress.Parse(tb_Servidor.Text), PORT);
             tcpClient = new TcpClient();
 
             tcpClient.Connect(ipEndPoint);
@@ -82,7 +82,7 @@ namespace JogoDoGalo
 
                             //Imprime na consola do Form o Vetor de Inicialização
                             Invoke(new Action(() => { 
-                                Console.WriteLine("Chave simetrica desencriptada: {0}", Convert.ToBase64String(aes.IV)); 
+                                Console.WriteLine("Vetor de inicialização desencriptado: {0}", Convert.ToBase64String(aes.IV)); 
                             }));
 
                             SendAcknowledged(protocolSI, networkStream);
@@ -103,6 +103,7 @@ namespace JogoDoGalo
 
 
                             break;
+
                         case ProtocolSICmdType.EOT:
                             SendAcknowledged(protocolSI, networkStream);
                             break;
@@ -116,6 +117,9 @@ namespace JogoDoGalo
                     break;
                 }
             }
+            SendAcknowledged(protocolSI, networkStream);
+            networkStream.Close();
+            tcpClient.Close();
         }
         private byte[] symetricEncryption(byte[] arr)
         {
@@ -157,17 +161,28 @@ namespace JogoDoGalo
                 networkStream = tcpClient.GetStream();
                 string msg = tb_EscreveMensagem.Text;
                 tb_EscreveMensagem.Clear();
-                byte[] encryptedMsg = symetricEncryption(Encoding.UTF8.GetBytes(msg));
-                byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
-                networkStream.Write(packet, 0, packet.Length);
+
+                //byte[] encryptedMsg = symetricEncryption(Encoding.UTF8.GetBytes(msg));
+                //byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
+                //networkStream.Write(packet, 0, packet.Length);
+
+                SendEncryptedProtocol(ProtocolSICmdType.DATA, Encoding.UTF8.GetBytes(msg));
+
                 //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
                 //{
                 //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
                 //}
+
                 networkStream.Flush();
                 rtbMensagens.AppendText("Eu: " + msg + Environment.NewLine);
-                
             }
+        }
+        public void SendEncryptedProtocol(ProtocolSICmdType protocolSICmdType, byte[] data)
+        {
+            byte[] encrypteData = symetricEncryption(data);
+            byte[] packet = protocolSI.Make(protocolSICmdType, encrypteData);
+            networkStream.Write(packet, 0, packet.Length);
+            networkStream.Flush();
         }
         public void SendAcknowledged(ProtocolSI propotcolSi, NetworkStream networkStream)
         {
@@ -259,10 +274,31 @@ namespace JogoDoGalo
             //Preparar o envio da mensagem para desligar as ligações
             byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(eot, 0, eot.Length);
+
             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+
 
             this.networkStream.Close();
             this.tcpClient.Close();
+        }
+        private void bt_Autenticar_Click(object sender, EventArgs e)
+        {
+            byte[] packet;
+
+         
+            //Enviamos encriptado os dados do username
+            byte[] username = Encoding.UTF8.GetBytes(tb_Jogador.Text);
+            byte[] encryptedMsg = symetricEncryption(username);
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, encryptedMsg);
+            networkStream.Write(packet, 0, packet.Length);
+
+            Console.WriteLine("Username encriptado: " + Convert.ToBase64String(packet));
+
+            //Enviamos encriptado os dados da password
+            byte[] password = Encoding.UTF8.GetBytes(tb_Password.Text);
+            packet = symetricEncryption(password);
+            protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, packet);
+            Console.WriteLine("Username encriptado: " + Convert.ToBase64String(packet));
         }
     }
 }

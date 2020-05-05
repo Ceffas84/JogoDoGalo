@@ -141,8 +141,9 @@
             this.bt_Autenticar.Name = "bt_Autenticar";
             this.bt_Autenticar.Size = new System.Drawing.Size(173, 29);
             this.bt_Autenticar.TabIndex = 25;
-            this.bt_Autenticar.Text = "Autenticar";
+            this.bt_Autenticar.Text = "SIGN IN  / SING UP";
             this.bt_Autenticar.UseVisualStyleBackColor = true;
+            this.bt_Autenticar.Click += new System.EventHandler(this.bt_Autenticar_Click);
             // 
             // tb_Password
             // 
@@ -167,6 +168,7 @@
             this.tb_Servidor.Name = "tb_Servidor";
             this.tb_Servidor.Size = new System.Drawing.Size(173, 20);
             this.tb_Servidor.TabIndex = 22;
+            this.tb_Servidor.Text = "127.0.0.1";
             // 
             // label3
             // 
@@ -283,7 +285,6 @@
             this.gBoxPlayers.ResumeLayout(false);
             this.gBoxPlayers.PerformLayout();
             this.ResumeLayout(false);
-
         }
 
         #endregion
