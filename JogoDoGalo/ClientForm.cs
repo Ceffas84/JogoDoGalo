@@ -288,17 +288,29 @@ namespace JogoDoGalo
          
             //Enviamos encriptado os dados do username
             byte[] username = Encoding.UTF8.GetBytes(tb_Jogador.Text);
-            byte[] encryptedMsg = symetricEncryption(username);
-            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, encryptedMsg);
+            byte[] encryptedData = symetricEncryption(username);
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
+
+            while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            {
+                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            }
 
             Console.WriteLine("Username encriptado: " + Convert.ToBase64String(packet));
 
             //Enviamos encriptado os dados da password
             byte[] password = Encoding.UTF8.GetBytes(tb_Password.Text);
-            packet = symetricEncryption(password);
-            protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, packet);
-            Console.WriteLine("Username encriptado: " + Convert.ToBase64String(packet));
+            encryptedData = symetricEncryption(password);
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, encryptedData);
+            networkStream.Write(packet, 0, packet.Length);
+            
+            while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            {
+                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            }
+
+            Console.WriteLine("Password encriptado: " + Convert.ToBase64String(packet));
         }
     }
 }
