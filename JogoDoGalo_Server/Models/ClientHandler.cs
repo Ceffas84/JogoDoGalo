@@ -27,11 +27,11 @@ namespace JogoDoGalo_Server.Models
         private byte[] username;
         private byte[] password;
 
-        public ClientHandler(Player player, int clientID, List<Player> playerList)
+        public ClientHandler(Player player, List<Player> playerList)
         {
             this.Player = player;
-            this.Player.PlayerID = clientID;
-            this.ClientID = clientID;
+            
+//            this.ClientID = clientID;
             this.PlayersList = playerList;
             this.Rsa = new RSACryptoServiceProvider();
             this.Aes = new AesCryptoServiceProvider();
@@ -47,8 +47,8 @@ namespace JogoDoGalo_Server.Models
         {
             string secret = "abcd";
             Player player = (Player)obj;
-            TcpClient tcpClient = player.TcpClient;
-            NetworkStream networkStream = tcpClient.GetStream();
+            //TcpClient tcpClient = player.TcpClient;
+            NetworkStream networkStream = Player.TcpClient.GetStream();
 
             //Gerar a key e o iv para a criptografia simétrica
             Aes.Key = generateKey(secret);
@@ -110,7 +110,7 @@ namespace JogoDoGalo_Server.Models
                         File.AppendAllText(Server.FILEPATH, msg);
                         Console.WriteLine(msg);
 
-                        BroadCast(decryptedData, tcpClient);
+                        BroadCast(decryptedData, Player);
 
                         SendAcknowledged(protocolSI, networkStream);
                         break;
@@ -158,20 +158,19 @@ namespace JogoDoGalo_Server.Models
             networkStream.Close();
             Player.TcpClient.Close();
         }
-        private void BroadCast(byte[] msg, TcpClient excludetcpClient)
+        private void BroadCast(byte[] msg, Player playerWhoSentMsg)
         {
             foreach (Player player in PlayersList)
             {
-                if (!player.TcpClient.Equals(excludetcpClient))
+                if (!player.Equals(playerWhoSentMsg))
                 {
                     ProtocolSI protocolSI = new ProtocolSI();
                     NetworkStream networkStream = player.TcpClient.GetStream();
-                    byte[] player_plus_message = MsgLine(player, msg);
+                    byte[] player_plus_message = MsgLine(playerWhoSentMsg, msg);
                     string message_str = Encoding.UTF8.GetString(player_plus_message);
+                    
                     byte[] encryptedMsg = symetricEncryption(player_plus_message);
-
                     byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
-
                     networkStream.Write(packet, 0, packet.Length);
 
                     networkStream.Flush();

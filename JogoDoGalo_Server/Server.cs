@@ -38,13 +38,14 @@ namespace JogoDoGalo_Server
                 Player player = new Player();
                 player.TcpClient = tcpListener.AcceptTcpClient();
                 playersList.Add(player);
+                player.PlayerID = playersList.Count();
                 
-                string connectedClient = "Client "+ playersList.Count() + " connected." + Environment.NewLine;
+                string connectedClient = "Client "+ player.PlayerID + " connected." + Environment.NewLine;
                 File.AppendAllText(FILEPATH, connectedClient);
-                Console.WriteLine("Client {0} connected", playersList.Count());
+                Console.WriteLine("Client {0} connected", player.PlayerID);
 
                 //Lança uma thread com um listner
-                ClientHandler clienHandler = new ClientHandler(player, playersList.Count(), playersList);
+                ClientHandler clienHandler = new ClientHandler(player, playersList);
                 clienHandler.Handle();
             }
         }
