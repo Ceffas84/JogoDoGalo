@@ -63,11 +63,13 @@
   <ItemGroup>
     <Compile Include="Models\Authentication.cs" />
     <Compile Include="Models\ClientHandler.cs" />
-    <Compile Include="Models\Estado.cs" />
-    <Compile Include="Models\Jogada.cs" />
-    <Compile Include="Models\Jogador.cs" />
-    <Compile Include="Models\JogoGalo.cs" />
+    <Compile Include="Models\GameState.cs" />
+    <Compile Include="Models\GameBoard.cs" />
+    <Compile Include="Models\GameEngine.cs" />
+    <Compile Include="Models\GamePlay.cs" />
+    <Compile Include="Models\GamePlayer.cs" />
     <Compile Include="Models\Player.cs" />
+    <Compile Include="Models\TSCryptography.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

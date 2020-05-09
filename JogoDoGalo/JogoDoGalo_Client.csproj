@@ -88,5 +88,11 @@
   <ItemGroup>
     <Folder Include="Models\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JogoDoGalo_Server\JogoDoGalo_Server.csproj">
+      <Project>{0045f881-9422-49f0-9c92-285c3d42ba13}</Project>
+      <Name>JogoDoGalo_Server</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

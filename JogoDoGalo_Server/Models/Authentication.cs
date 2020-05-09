@@ -10,9 +10,6 @@ namespace JogoDoGalo_Server.Models
 {
     public class Authentication
     { 
-        private const int SALTSIZE = 8;
-        private const int NUMBER_OF_ITERATIONS = 1000;
-    
         public Authentication()
         {
 
@@ -62,7 +59,7 @@ namespace JogoDoGalo_Server.Models
 
                 conn.Close();
 
-                byte[] hash = GenerateSaltedHash(password, saltStored);
+                byte[] hash = TSCryptography.GenerateSaltedHash(password, saltStored);
 
                 return saltedPasswordHashStored.SequenceEqual(hash);
             }
@@ -116,19 +113,6 @@ namespace JogoDoGalo_Server.Models
             {
                 throw new Exception("Error while inserting an user:" + e.Message);
             }
-        }
-        public static byte[] GenerateSalt(int size)
-        {
-            //Generate a cryptographic random number.
-            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-            byte[] buff = new byte[size];
-            rng.GetBytes(buff);
-            return buff;
-        }
-        public static byte[] GenerateSaltedHash(string plainText, byte[] salt)
-        {
-            Rfc2898DeriveBytes rfc2898 = new Rfc2898DeriveBytes(plainText, salt, NUMBER_OF_ITERATIONS);
-            return rfc2898.GetBytes(32);
         }
     }
 }

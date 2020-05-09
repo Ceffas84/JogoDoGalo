@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace JogoDoGalo_Server.Models
 {
-    enum Estado
+    enum GameState
     {
-        EmCurso,
+        Standby,
+        OnGoing,
         GameOver
     }
 }

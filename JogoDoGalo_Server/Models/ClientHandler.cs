@@ -110,7 +110,7 @@ namespace JogoDoGalo_Server.Models
                         File.AppendAllText(Server.FILEPATH, msg);
                         Console.WriteLine(msg);
 
-                        BroadCast(decryptedData, Player);
+                        BroadCast(decryptedData, player);
 
                         SendAcknowledged(protocolSI, networkStream);
                         break;

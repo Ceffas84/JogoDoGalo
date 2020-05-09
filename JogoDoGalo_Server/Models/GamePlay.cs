@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace JogoDoGalo_Server.Models
 {
-    class Jogada
+    class GamePlay
     {
         public int Coord_x;
         public int Coord_y;
-        public Jogador Jogador;
-        public Jogada(int coord_x, int coord_y, Jogador jogador)
+        public GamePlayer Player;
+        public GamePlay(int coord_x, int coord_y, GamePlayer player)
         {
-            this.Coord_x = coord_x;
-            this.Coord_y = coord_y;
-            this.Jogador = jogador;
+            Coord_x = coord_x;
+            Coord_y = coord_y;
+            Player = player;
         }
     }
 }
