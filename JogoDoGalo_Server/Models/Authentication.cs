@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 namespace JogoDoGalo_Server.Models
 {
     public class Authentication
-    { 
+    {
+        TSCryptography tsCrypto;
         public Authentication()
         {
-
+            tsCrypto = new TSCryptography();
         }
         public bool VerifyLogin(string username, string password)
         {
@@ -59,7 +60,7 @@ namespace JogoDoGalo_Server.Models
 
                 conn.Close();
 
-                byte[] hash = TSCryptography.GenerateSaltedHash(password, saltStored);
+                byte[] hash = tsCrypto.GenerateSaltedHash(password, saltStored);
 
                 return saltedPasswordHashStored.SequenceEqual(hash);
             }

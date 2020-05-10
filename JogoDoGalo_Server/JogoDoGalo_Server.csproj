@@ -68,7 +68,7 @@
     <Compile Include="Models\GameEngine.cs" />
     <Compile Include="Models\GamePlay.cs" />
     <Compile Include="Models\GamePlayer.cs" />
-    <Compile Include="Models\Player.cs" />
+    <Compile Include="Models\User.cs" />
     <Compile Include="Models\TSCryptography.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -25,9 +25,10 @@ namespace JogoDoGalo
         private IPEndPoint ipEndPoint;
         private NetworkStream networkStream;
         private ProtocolSI protocolSI;
-        private TSCryptography tsCrypto = new TSCryptography();
+        private TSCryptography tsCrypto;
         private string publicKey;
-        AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+        //private AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+        private Thread thread;
         private byte[] decryptedSymKey;
         private byte[] decryptedIV;
         public ClientForm()
@@ -40,19 +41,22 @@ namespace JogoDoGalo
             tcpClient.Connect(ipEndPoint);
             networkStream = tcpClient.GetStream();
 
-            protocolSI = new ProtocolSI();           
+            protocolSI = new ProtocolSI();
+            tsCrypto = new TSCryptography();
 
-            Thread thread = new Thread(ServerLisneter);
+            thread = new Thread(ServerLisneter);
             thread.Start(tcpClient);
         }
         private void ServerLisneter(object obj)
         {
             TcpClient tcpClient = (TcpClient) obj;
+            NetworkStream networkStream = tcpClient.GetStream();
 
-            networkStream = tcpClient.GetStream();
+            publicKey = tsCrypto.GetPublicKey();
 
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            publicKey = rsa.ToXmlString(false);
+            Invoke(new Action(() => {
+                Console.WriteLine("Chave publica: {0}", publicKey);
+            }));
 
             byte[] packet = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
             networkStream.Write(packet, 0, packet.Length);
@@ -71,18 +75,10 @@ namespace JogoDoGalo
                         case ProtocolSICmdType.SECRET_KEY:
                             //Recebe a Chave Simétrica do ProtocolSI
                             byte[] encryptedSymKey = protocolSI.GetData();
-                            string str_secret = Convert.ToBase64String(encryptedSymKey);        //para apagar
 
                             //Desencripta e atribui a key ao objecto aes
-                            decryptedSymKey = rsa.Decrypt(encryptedSymKey, true);
-                            string str_symkey = Convert.ToBase64String(decryptedSymKey);     //para apagar
-                            //aes.Key = decryptedSecretKey;
+                            decryptedSymKey = tsCrypto.RsaDecryption(encryptedSymKey, tsCrypto.GetPrivateKey());
                             tsCrypto.SetAesSymKey(decryptedSymKey);
-
-                            //Imprime na consola do Form o Vetor de Inicialização
-                            Invoke(new Action(() => {
-                                Console.WriteLine("Chave simetrica desencriptada: {0}", Convert.ToBase64String(aes.Key));
-                            }));
 
                             SendAcknowledged(protocolSI, networkStream);
                             break;
@@ -90,27 +86,17 @@ namespace JogoDoGalo
                             //Recebe o Vetor de Inicialização do ProtocolSI
                             byte[] ivEncrypted = protocolSI.GetData();
 
-                            //desencripta e atribui o iv ao objecto aes
-                            decryptedIV = rsa.Decrypt(ivEncrypted, true);
-                            //aes.IV = decryptedIV;
+                            //Desencripta e atribui o iv ao objecto aes
+                            decryptedIV = tsCrypto.RsaDecryption(ivEncrypted, tsCrypto.GetPrivateKey());
                             tsCrypto.SetAesIV(decryptedIV);
-
-                            string str_iv = Convert.ToBase64String(decryptedIV);        //para apagar
-                            
-                            //Imprime na consola do Form o Vetor de Inicialização       //para apagar
-                            Invoke(new Action(() => { 
-                                Console.WriteLine("Vetor de inicialização desencriptado: {0}", Convert.ToBase64String(aes.IV)); 
-                            }));
 
                             SendAcknowledged(protocolSI, networkStream);
                             break;
                         case ProtocolSICmdType.DATA:
                             //recebe a mensagem
                             byte[] encriptedMsg = protocolSI.GetData();
-                            SendAcknowledged(protocolSI, networkStream);
-
+                            
                             //Desencripta a mensagem recebida
-                            //byte[] decryptedMsg = symetricDecryption(encriptedMsg);
                             byte[] decryptedMsg = tsCrypto.SymetricDecryption(encriptedMsg);
 
                             //O código abaixo serve para utilizar elementos do ClientForm apartir de outra thread.
@@ -120,13 +106,16 @@ namespace JogoDoGalo
                                 rtbMensagens.AppendText(message); rtbMensagens.AppendText(Environment.NewLine);
                             }));
 
-
-                            break;
-
-                        case ProtocolSICmdType.EOT:
                             SendAcknowledged(protocolSI, networkStream);
                             break;
+
+                        //case ProtocolSICmdType.EOT:                                   o cliente nunca vai receber um EOT
+                        //    //SendAcknowledged(protocolSI, networkStream);
+                        //    packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                        //    networkStream.Write(packet, 0, packet.Length);
+                        //    break;
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -136,43 +125,10 @@ namespace JogoDoGalo
                     break;
                 }
             }
-            SendAcknowledged(protocolSI, networkStream);
+            //SendAcknowledged(protocolSI, networkStream);
             networkStream.Close();
             tcpClient.Close();
         }
-        //private byte[] symetricEncryption(byte[] arr)
-        //{
-        //    byte[] encryptedArr;
-
-        //    using (MemoryStream ms = new MemoryStream())
-        //    {
-        //        using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
-        //        {
-        //            cs.Write(arr, 0, arr.Length);
-        //            //cs.Close();
-        //        }
-        //        //guardar os dados cifrados que estão em memória
-        //        encryptedArr = ms.ToArray();
-        //        //ms.Close();
-        //    }
-        //    return encryptedArr;
-        //}
-        //private byte[] symetricDecryption(byte[] encryptedArr)
-        //{
-        //    byte[] decryptedArr;
-
-        //    MemoryStream ms = new MemoryStream(encryptedArr);
-
-        //    CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
-
-        //    decryptedArr = new byte[ms.Length];
-
-        //    cs.Read(decryptedArr, 0, decryptedArr.Length);
-
-        //    cs.Close();
-        //    ms.Close();
-        //    return decryptedArr;
-        //}
         private void bt_EnviaMensagem_Click(object sender, EventArgs e)
         {
             if (tcpClient.Connected)
@@ -180,10 +136,6 @@ namespace JogoDoGalo
                 networkStream = tcpClient.GetStream();
                 string msg = tb_EscreveMensagem.Text;
                 tb_EscreveMensagem.Clear();
-
-                //byte[] encryptedMsg = symetricEncryption(Encoding.UTF8.GetBytes(msg));
-                //byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
-                //networkStream.Write(packet, 0, packet.Length);
 
                 SendEncryptedProtocol(ProtocolSICmdType.DATA, Encoding.UTF8.GetBytes(msg));
 
@@ -272,23 +224,20 @@ namespace JogoDoGalo
         {
             IniciarJogo();
         }
-
-        private void ClientForm_Load(object sender, EventArgs e)
-        {
-            
-        }
-
         private void ClientForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+
+        }
+        private void CloseClient()
+        {
             //Preparar o envio da mensagem para desligar as ligações
+            
             byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(eot, 0, eot.Length);
-
             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
 
-
-            this.networkStream.Close();
-            this.tcpClient.Close();
+            networkStream.Close();
+            tcpClient.Close();
         }
         private void bt_Autenticar_Click(object sender, EventArgs e)
         {
@@ -320,6 +269,11 @@ namespace JogoDoGalo
             }
 
             Console.WriteLine("Password encriptado: " + Convert.ToBase64String(packet));
+        }
+
+        private void sairToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CloseClient();
         }
     }
 }
