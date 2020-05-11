@@ -8,11 +8,13 @@ namespace JogoDoGalo_Server.Models
 {
     class GameEngine
     {
+        private int gameBoardDimension;
         private GameBoard gameBoard;
         private GameState gameState;
         private List<GamePlayer> GamePlayersList;
         public GameEngine(int boardDimension, List<GamePlayer> gamePLayersList)
         {
+            gameBoardDimension = boardDimension;
             gameBoard = new GameBoard(boardDimension, gamePLayersList);
             gameState = GameState.Standby;
         }

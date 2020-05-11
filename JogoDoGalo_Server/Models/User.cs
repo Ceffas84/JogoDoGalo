@@ -10,11 +10,13 @@ namespace JogoDoGalo_Server.Models
     public class User
     {
         public TcpClient TcpClient { get; set; }
-        public string PublicKey { get; set; }
-        public byte[] Salt { get; set; }
-        public byte[] Username { set; get; }
-        public byte[] HashPassword { set; get; }
         public int UserID { get; set; }
+        public string PublicKey { get; set; }
+        public byte[] SymKey { get; set; }
+        public byte[] IV { get; set; }
+        public byte[] username { set; get; }
+        public byte[] salt { get; set; }
+        public byte[] saltedPasswordHash { set; get; }
         public User()
         {
 

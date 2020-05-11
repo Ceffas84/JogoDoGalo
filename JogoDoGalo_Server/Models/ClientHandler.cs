@@ -17,7 +17,6 @@ namespace JogoDoGalo_Server.Models
     {
         private List<User> UsersList;
         private TSCryptography tsCrypto;
-        private ProtocolSI protocolSI;
         Authentication Auth;
         private byte[] encryptedData;
         private byte[] decryptedData;
@@ -27,18 +26,24 @@ namespace JogoDoGalo_Server.Models
             this.UsersList = usersList;
             this.tsCrypto = new TSCryptography();
             this.Auth = new Authentication();
-            this.protocolSI = new ProtocolSI();
         }
         public void Handle()
         {
             Thread thread = new Thread(ClientListener);
+            thread.Name = "ClientListener_" + UsersList[UsersList.Count() - 1].UserID;
             thread.Start(this.UsersList);
         }
         public void ClientListener(object obj)
         {
             List<User> usersList = (List<User>)obj;
             User user = usersList[usersList.Count() - 1];
+            
+            user.SymKey = tsCrypto.GetSymKey();
+            user.IV = tsCrypto.GetIV();
             NetworkStream networkStream = user.TcpClient.GetStream();
+            ProtocolSI protocolSI = new ProtocolSI();
+            byte[] packet;
+
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -101,7 +106,7 @@ namespace JogoDoGalo_Server.Models
                         Console.WriteLine(msg);
                         SendAcknowledged(protocolSI, networkStream);
 
-                        BroadCast(decryptedData, user, usersList);
+                        BroadCast(ProtocolSICmdType.DATA, decryptedData, user, usersList);
 
                         break;
 
@@ -109,8 +114,8 @@ namespace JogoDoGalo_Server.Models
                         //Recebe o username do user guarda-o no user
                         encryptedData = protocolSI.GetData();
                         byte[] username = tsCrypto.SymetricDecryption(encryptedData);
-                        string str_username = Convert.ToBase64String(username);
-                        user.Username = username;
+                        string str_username = Encoding.UTF8.GetString(username);
+                        user.username = username;
 
                         SendAcknowledged(protocolSI, networkStream);
                         break;
@@ -119,31 +124,49 @@ namespace JogoDoGalo_Server.Models
                         //Recebe a password do user e guarda a sua Hash no user
                         encryptedData = protocolSI.GetData();
                         byte[] password = tsCrypto.SymetricDecryption(encryptedData);
-                        string str_password = Convert.ToBase64String(password);
+                        string str_password = Encoding.UTF8.GetString(password);
 
                         //Gera um slat e guarda-o no user
                         byte[] salt = new byte[8];
                         salt = tsCrypto.GenerateSalt();
-                        user.Salt = salt;
+                        user.salt = salt;
 
                         //Gera uma saltedhash da password e guarda-a no user
                         byte[] saltedHash = tsCrypto.GenerateSaltedHash(str_password, salt);
-                        user.HashPassword = saltedHash;
+                        user.saltedPasswordHash = saltedHash;
 
                         SendAcknowledged(protocolSI, networkStream);
 
                         Authentication auth = new Authentication();
-                        if(auth.VerifyLogin(Convert.ToBase64String(user.Username), str_password))
+                        if(auth.VerifyLogin(Encoding.UTF8.GetString(user.username), str_password))
                         {
-                            Console.WriteLine("Cliente registado");
+                            Console.WriteLine("Client login successfull");
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1);
+                            networkStream.Write(packet, 0, packet.Length);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                auth.Register(user.username, user.saltedPasswordHash, user.salt);
+                            }
+                            catch (Exception ex)
+                            {
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
+                                networkStream.Write(packet, 0, packet.Length);
+                            }
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_2);
+                            networkStream.Write(packet, 0, packet.Length);
+
                         }
                         break;
 
                     case ProtocolSICmdType.EOT:
                         Console.WriteLine("Ending Thread from Client " + user.UserID);
-                        //SendAcknowledged(protocolSI, networkStream);
-                        byte[] packet = protocolSI.Make(ProtocolSICmdType.ACK);
+
+                        packet = protocolSI.Make(ProtocolSICmdType.EOT);
                         networkStream.Write(packet, 0, packet.Length);
+                        Thread.Sleep(1000);
 
                         break;
                 }
@@ -157,38 +180,43 @@ namespace JogoDoGalo_Server.Models
 
 
         }
-        private void BroadCast(byte[] msg, User playerWhoSentMsg, List<User> usersList)
+        private void BroadCast(ProtocolSICmdType protocolSICmdType, byte[] data, User playerWhoSentMsg, List<User> usersList)
         {
             foreach (User user in usersList)
             {
-                if (!user.Equals(playerWhoSentMsg))
+               
+                TSCryptography tsCryptoBroadCast = new TSCryptography(user.IV, user.SymKey);
+                ProtocolSI protocolSI = new ProtocolSI();
+                NetworkStream networkStream = user.TcpClient.GetStream();
+                string str_player_plus_message;
+                byte[] player_plus_message;
+
+                //Se o user for o mesmo que enviou a mensagem, antes da mensagem é colocadao "Eu:, caso contrário é colocada a identificação do utilizador
+                if (user.Equals(playerWhoSentMsg))
                 {
-                    ProtocolSI protocolSI = new ProtocolSI();
-                    NetworkStream networkStream = user.TcpClient.GetStream();
-                    byte[] player_plus_message = MsgLine(playerWhoSentMsg, msg);
-
-                    string message_str = Encoding.UTF8.GetString(player_plus_message);   // *** Para apagar ***
-
-                    //byte[] encryptedMsg = symetricEncryption(player_plus_message);
-                    byte[] encryptedMsg = tsCrypto.SymetricEncryption(player_plus_message);
-                    byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
-                    networkStream.Write(packet, 0, packet.Length);
-                    //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-                    //{
-                    //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-                    //}
-
-                    networkStream.Flush();
+                    str_player_plus_message = "Eu: " + Encoding.UTF8.GetString(data);
+                    player_plus_message = Encoding.UTF8.GetBytes(str_player_plus_message);
                 }
+                else
+                {
+                    str_player_plus_message = "Jogador " + playerWhoSentMsg.UserID + ": " + Encoding.UTF8.GetString(data);
+                    player_plus_message = Encoding.UTF8.GetBytes(str_player_plus_message);
+                }
+
+                //Encripta a mensagem trabalhada e envia para o stream
+                byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(player_plus_message);
+                byte[] packet = protocolSI.Make(protocolSICmdType, encryptedMsg);
+                
+                networkStream.Write(packet, 0, packet.Length);
+                //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+                //{
+                //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+                //}
+                networkStream.Flush();
+                
             }
         }
-        private byte[] MsgLine(User player, byte[] msg)
-        {
-            string player_plus_message = "Jogador " + player.UserID + ": " + Encoding.UTF8.GetString(msg);
-
-            return Encoding.UTF8.GetBytes(player_plus_message);
-        }
-        private void SendAcknowledged(ProtocolSI propotcolSi, NetworkStream networkStream)
+        private void SendAcknowledged(ProtocolSI protocolSI, NetworkStream networkStream)
         {
             byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);
             networkStream.Write(ack, 0, ack.Length);

@@ -11,6 +11,7 @@ namespace JogoDoGalo_Server.Models
     public class Authentication
     {
         TSCryptography tsCrypto;
+        private string FULLPATH = @"C:\Users\ricgl\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
         public Authentication()
         {
             tsCrypto = new TSCryptography();
@@ -22,8 +23,7 @@ namespace JogoDoGalo_Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\ricgl\source\repos\JogoDoGalo\JogoDoGalo_Server\Database1.mdf';Integrated Security=True");
-
+                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
                 // Abrir ligação à Base de Dados
                 conn.Open();
 
@@ -43,10 +43,12 @@ namespace JogoDoGalo_Server.Models
 
                 // Executar comando SQL
                 SqlDataReader reader = cmd.ExecuteReader();
-
+                
+                
                 if (!reader.HasRows)
                 {
-                    throw new Exception("Error while trying to access an user");
+                    //throw new Exception("Error while trying to access an user");
+                    return false;
                 }
 
                 // Ler resultado da pesquisa
@@ -70,32 +72,34 @@ namespace JogoDoGalo_Server.Models
                 return false;
             }
         }
-        public void Register(string username, byte[] saltedPasswordHash, byte[] salt)
+        public void Register(byte[] username, byte[] saltedPasswordHash, byte[] salt)
         {
             SqlConnection conn = null;
             try
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\ricgl\source\repos\TeSP_UC_TS\ExerciciosTS\Ficha8\FichaPratica8_Base\FichaPratica8_Base\Database1.mdf';Integrated Security=True");
+                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
 
                 // Declaração dos parâmetros do comando SQL
-                SqlParameter paramUsername = new SqlParameter("@username", username);
-                SqlParameter paramPassHash = new SqlParameter("@saltedPasswordHash", saltedPasswordHash);
-                SqlParameter paramSalt = new SqlParameter("@salt", salt);
+                //SqlParameter paramId = new SqlParameter("@Id", default);
+                SqlParameter paramUsername = new SqlParameter("@Username", Encoding.UTF8.GetString(username));
+                SqlParameter paramSaltedPasswordHash = new SqlParameter("@SaltedPasswordHash", saltedPasswordHash);
+                SqlParameter paramSalt = new SqlParameter("@Salt", salt);
 
                 // Declaração do comando SQL
-                String sql = "INSERT INTO Users (Username, SaltedPasswordHash, Salt) VALUES (@username,@saltedPasswordHash,@salt)";
+                String sql = "INSERT INTO Users (Username, SaltedPasswordHash, Salt) VALUES (@Username,@SaltedPasswordHash,@Salt)";
 
                 // Prepara comando SQL para ser executado na Base de Dados
                 SqlCommand cmd = new SqlCommand(sql, conn);
 
                 // Introduzir valores aos parâmentros registados no comando SQL
+                //cmd.Parameters.Add(paramId);
                 cmd.Parameters.Add(paramUsername);
-                cmd.Parameters.Add(paramPassHash);
+                cmd.Parameters.Add(paramSaltedPasswordHash);
                 cmd.Parameters.Add(paramSalt);
 
                 // Executar comando SQL

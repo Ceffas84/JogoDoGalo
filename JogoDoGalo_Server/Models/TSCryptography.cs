@@ -46,7 +46,7 @@ namespace JogoDoGalo_Server.Models
         //      Um vetor de inicialização aleatório gerado atraves de um salt e de um numero de iterações
         private byte[] GenerateIV(string secret)
         {
-            byte[] salt = { 9, 8, 9, 8, 6, 0, 9, 3 };
+            byte[] salt = GenerateSalt();
             Rfc2898DeriveBytes pwdGen = new Rfc2898DeriveBytes(secret, salt, NUMBER_OF_ITERATIONS);
             byte[] iv = pwdGen.GetBytes(16);
             return iv;
@@ -57,16 +57,19 @@ namespace JogoDoGalo_Server.Models
         //      Recebe como parametro um segredo
         //Returns:
         //      Uma symetric key aleatória gerada atraves de um salt e de um numero de iterações
-        private static byte[] GenerateSymKey(string secret)
+        private byte[] GenerateSymKey(string secret)
         {
-            byte[] salt = { 3, 5, 7, 2, 7, 9, 0, 4 };
+            byte[] salt = GenerateSalt();
             Rfc2898DeriveBytes pwdGen = new Rfc2898DeriveBytes(secret, salt, NUMBER_OF_ITERATIONS);
             byte[] symKey = pwdGen.GetBytes(16);
             return symKey;
         }
-        //Função que faz a dencriptação simétrica de um dado array de bytes
-        //Parameters: Recebe um array de bytes
-        //Returns: Retorna um array de bytes encriptado
+        //
+        //Summary:
+        //      Função que faz a dencriptação simétrica de um dado array de bytes
+        //      Recebe como parametro um array de bytes
+        //Returns:
+        //      Retorna um array de bytes encriptado com chave simétrica
         public byte[] SymetricEncryption(byte[] data)
         {
             byte[] encryptedData;
@@ -84,9 +87,12 @@ namespace JogoDoGalo_Server.Models
             }
             return encryptedData;
         }
-        //Função que faz a desencriptação simétrica de um dado array de bytes
-        //Parametes: recebe um  array de bytes
-        //Returns: retorna um array de bytes encriptado
+        //
+        //Summary:
+        //      Função que faz a desencriptação simétrica de um dado array de bytes
+        //      Recebe como parametro um array de bytes encryptado com chave simétrica
+        //Returns:
+        //      Retorna um array de bytes desencriptado
         public byte[] SymetricDecryption(byte[] encryptedData)
         {
             byte[] decryptedData;
@@ -104,22 +110,29 @@ namespace JogoDoGalo_Server.Models
             return decryptedData;
         }
         //
-        //
+        //Summary:
+        //      Setter para a Propriedade SymKey
         public void SetAesSymKey(byte[] key)
         {
             Aes.Key = key;
         }
         //
-        //
+        //Summary:
+        //      Setter para a Propriedade IV
         public void SetAesIV(byte[] iv)
         {
             Aes.IV = iv;
         }
         //
+        //Summary:
+        //      Getter para a Propriedade SymKey
         public byte[] GetSymKey()
         {
             return Aes.Key;
         }
+        //
+        //Summary:
+        //      Getter para a Propriedade IV
         public byte[] GetIV()
         {
             return Aes.IV;
@@ -127,12 +140,11 @@ namespace JogoDoGalo_Server.Models
         //
         //Summary: 
         //      Função que faz a encriptação simétrica de um dado array de bytes
-        //      Recebe como parametros um array de bytes e a chave a colocar na encriptação assimétrica
+        //      Recebe como parametros um array de bytes e a chave a colocar na encriptação assimétrica (Publica ou Privada)
         //Returns: 
         //      Retorna um array de bytes encriptado pelo objeto Rsa e a chave recebido
         public byte[] RsaEncryption(byte[] data, string key)
         {
-            //RSACryptoServiceProvider Rsa = new RSACryptoServiceProvider();
             Rsa.FromXmlString(key);
             byte[] encryptedData = Rsa.Encrypt(data, true);
             return encryptedData;
@@ -145,20 +157,29 @@ namespace JogoDoGalo_Server.Models
         //      Retorna um array de bytes desencriptado pelo objeto Rsa e a chave recebido
         public byte[] RsaDecryption(byte[] data, string key)
         {
-            //RSACryptoServiceProvider Rsa = new RSACryptoServiceProvider();
             Rsa.FromXmlString(key);
             byte[] decryptedData = Rsa.Decrypt(data, true);
             return decryptedData;
         }
+        //
+        //Summary:
+        //      Retorna a Publick Key do Objecto RSA
         public string GetPublicKey()
         {
             return Rsa.ToXmlString(false);
         }
+        //
+        //Summary:
+        //      Retorna a Publick e Private Key do Objecto RSA
         public string GetPrivateKey()
         {
             return Rsa.ToXmlString(true);
         }
-        //Função que gera um salt aleatório
+        //
+        //Summary: 
+        //      Função que gera um salt aleatório de 8 bytes
+        //Returns: 
+        //      Retorna um array de bytes com o salt aleatório gerado
         public byte[] GenerateSalt()
         {
             //Generate a cryptographic random number.
@@ -167,7 +188,12 @@ namespace JogoDoGalo_Server.Models
             rng.GetBytes(buff);
             return buff;
         }
-        //Função que gera a Hash de um test com um salt aleatório
+        //
+        //Summary: 
+        //      Função que gera uma salted hash de 32
+        //      Recebe como parametros uma string e um salt
+        //Returns: 
+        //      Retorna uma saltedhash da string introduzida
         public byte[] GenerateSaltedHash(string plainText, byte[] salt)
         {
             Rfc2898DeriveBytes rfc2898 = new Rfc2898DeriveBytes(plainText, salt, NUMBER_OF_ITERATIONS);
