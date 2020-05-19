@@ -11,7 +11,6 @@ namespace JogoDoGalo_Server.Models
     {
         public TcpClient TcpClient { get; set; }
         public int UserID { get; set; }
-<<<<<<< Updated upstream
         public string PublicKey { get; set; }
         public byte[] SymKey { get; set; }
         public byte[] IV { get; set; }

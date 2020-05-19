@@ -174,7 +174,6 @@ namespace JogoDoGalo_Server.Models
                         break;
 
                     case ProtocolSICmdType.EOT:
-<<<<<<< Updated upstream
                         Console.WriteLine("Ending Thread from Client " + user.UserID);
 
                         //Comunica o Server Listener um EOT
@@ -200,9 +199,7 @@ namespace JogoDoGalo_Server.Models
         private void BroadCastMsg(ProtocolSICmdType protocolSICmdType, byte[] data, User userWhoSentMsg, List<User> gameRoom)
         {
             foreach (User user in gameRoom)
-            {
-<<<<<<< Updated upstream
-               
+            {  
                 TSCryptography tsCryptoBroadCast = new TSCryptography(user.IV, user.SymKey);
                 ProtocolSI protocolSI = new ProtocolSI();
                 NetworkStream networkStream = user.TcpClient.GetStream();
@@ -219,29 +216,8 @@ namespace JogoDoGalo_Server.Models
                 {
                     str_player_plus_message = "Jogador " + userWhoSentMsg.UserID + ": " + Encoding.UTF8.GetString(data);
                     player_plus_message = Encoding.UTF8.GetBytes(str_player_plus_message);
-=======
-                TSCryptography tSCryptBroadcast = new TSCryptography(user.iv, user.symKey);
-                if (!user.Equals(playerWhoSentMsg))
-                {
-                    ProtocolSI protocolSI = new ProtocolSI();
-                    NetworkStream networkStream = user.TcpClient.GetStream();
-                    byte[] player_plus_message = MsgLine(playerWhoSentMsg, msg);
-
-                    string message_str = Encoding.UTF8.GetString(player_plus_message);   // *** Para apagar ***
-
-                    //byte[] encryptedMsg = symetricEncryption(player_plus_message);
-                    byte[] encryptedMsg = tSCryptBroadcast.SymetricEncryption(player_plus_message);
-                    byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
-                    networkStream.Write(packet, 0, packet.Length);
-                    //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-                    //{
-                    //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-                    //}
-
-                    networkStream.Flush();
->>>>>>> Stashed changes
                 }
-
+                                
                 //Encripta a mensagem trabalhada e envia para o stream
                 byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(player_plus_message);
                 byte[] packet = protocolSI.Make(protocolSICmdType, encryptedMsg);

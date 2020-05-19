@@ -11,7 +11,7 @@ namespace JogoDoGalo_Server.Models
     public class Authentication
     {
         TSCryptography tsCrypto;
-        private string FULLPATH = @"C:\Users\ricgl\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
+        private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
         public Authentication()
         {
             tsCrypto = new TSCryptography();
@@ -23,12 +23,11 @@ namespace JogoDoGalo_Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-<<<<<<< Updated upstream
-                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-=======
-                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\Database1.mdf';Integrated Security=True");
 
->>>>>>> Stashed changes
+                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
+
+                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf';Integrated Security=True");
+
                 // Abrir ligação à Base de Dados
                 conn.Open();
 
@@ -84,11 +83,11 @@ namespace JogoDoGalo_Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-<<<<<<< Updated upstream
+
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-=======
-                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\Database1.mdf';Integrated Security=True");
->>>>>>> Stashed changes
+
+                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='';Integrated Security=True");
+
 
                 // Abrir ligação à Base de Dados
                 conn.Open();

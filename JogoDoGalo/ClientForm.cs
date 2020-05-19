@@ -110,12 +110,8 @@ namespace JogoDoGalo
 
                             SendAcknowledged(protocolSI, networkStream);
                             break;
-<<<<<<< Updated upstream
-
                             //Receção de resposta so servidor ao pedido de Login
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
+
                         case ProtocolSICmdType.USER_OPTION_1:
                             result = protocolSI.GetIntFromData();
                             Invoke(new Action(() => { VerifyLogin(result); }));
@@ -137,21 +133,11 @@ namespace JogoDoGalo
 
                         case ProtocolSICmdType.EOT:
                             SendAcknowledged(protocolSI, networkStream);
-<<<<<<< Updated upstream
                             Acknoledged = true;
                             break;
 
                         case ProtocolSICmdType.ACK:
                             Acknoledged = true;
-=======
-=======
-
-                        case ProtocolSICmdType.EOT:
-                            //SendAcknowledged(protocolSI, networkStream);
-                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(packet, 0, packet.Length);
->>>>>>> Stashed changes
->>>>>>> Stashed changes
                             break;
                     }
                 }
@@ -260,10 +246,6 @@ namespace JogoDoGalo
         private void ClientForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             CloseClient();
-<<<<<<< Updated upstream
-=======
-            
->>>>>>> Stashed changes
         }
         private void CloseClient()
         {
@@ -272,7 +254,7 @@ namespace JogoDoGalo
             byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(eot, 0, eot.Length);
             
-<<<<<<< Updated upstream
+
             
             //Aguarda confirmação da receção do username
             while (!Acknoledged) { }
@@ -280,17 +262,6 @@ namespace JogoDoGalo
             Thread.Sleep(2000);
 
 
-=======
-<<<<<<< Updated upstream
-            Thread.Sleep(2000);
-=======
-            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-            //{
-            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-            //}
-
->>>>>>> Stashed changes
->>>>>>> Stashed changes
             networkStream.Close();
             tcpClient.Close();
         }
