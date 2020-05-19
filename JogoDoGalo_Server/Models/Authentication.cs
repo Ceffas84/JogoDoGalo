@@ -11,7 +11,8 @@ namespace JogoDoGalo_Server.Models
     public class Authentication
     {
         TSCryptography tsCrypto;
-        private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
+        //private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
+        private string FULLPATH = @"C:\Users\ricgl\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
         public Authentication()
         {
             tsCrypto = new TSCryptography();
