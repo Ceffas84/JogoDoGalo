@@ -31,6 +31,7 @@ namespace JogoDoGalo
         private Thread thread;
         private byte[] decryptedSymKey;
         private byte[] decryptedIV;
+        private bool Acknoledged = false;
         public ClientForm()
         {
             InitializeComponent();
@@ -55,6 +56,7 @@ namespace JogoDoGalo
             byte[] packet = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
             networkStream.Write(packet, 0, packet.Length);
 
+
             //ServerHandler serverHandler = new ServerHandler(tcpClient);
             //serverHandler.Handle();
         }
@@ -62,6 +64,7 @@ namespace JogoDoGalo
         {
             TcpClient tcpClient = (TcpClient)obj;
             NetworkStream networkStream = tcpClient.GetStream();
+            int result;
 
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
@@ -107,27 +110,34 @@ namespace JogoDoGalo
 
                             SendAcknowledged(protocolSI, networkStream);
                             break;
+
+                            //Receção de resposta so servidor ao pedido de Login
                         case ProtocolSICmdType.USER_OPTION_1:
-                            Invoke(new Action(() =>
-                            {
-                                MessageBox.Show("Login com sucesso", "Login");
-                            }));
+                            result = protocolSI.GetIntFromData();
+                            Invoke(new Action(() => { VerifyLogin(result); }));
                             break;
+
+                            //Receção de resposta so servidor ao pedido de registo
                         case ProtocolSICmdType.USER_OPTION_2:
-                            Invoke(new Action(() =>
-                            {
-                                //MessageBox.Show("Registo com sucesso, faça Login", "Registo");
-                                
-                            }));
+                            result = protocolSI.GetIntFromData();
+                            Invoke(new Action(() => { VerifyRegister(result); }));
                             break;
+
+                            //Receção de Brodcast do servidor com um novo user logged in
                         case ProtocolSICmdType.USER_OPTION_3:
-                            Invoke(new Action(() =>
-                            {
-                                MessageBox.Show("Erro ao registar utilizador", "Resgisto");
-                            }));
+                            byte[] encryptedData = protocolSI.GetData();
+                            byte[] decryptedData = tsCrypto.SymetricDecryption(encryptedData);
+
+                            Invoke(new Action(() => { PlayersBoardUpdate(decryptedData); }));
                             break;
+
                         case ProtocolSICmdType.EOT:
                             SendAcknowledged(protocolSI, networkStream);
+                            Acknoledged = true;
+                            break;
+
+                        case ProtocolSICmdType.ACK:
+                            Acknoledged = true;
                             break;
                     }
                 }
@@ -244,40 +254,99 @@ namespace JogoDoGalo
             byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(eot, 0, eot.Length);
             
+            
+            //Aguarda confirmação da receção do username
+            while (!Acknoledged) { }
+            Acknoledged = false;
             Thread.Sleep(2000);
+
+
             networkStream.Close();
             tcpClient.Close();
         }
-        private void bt_Autenticar_Click(object sender, EventArgs e)
+        private void btnLogin_Click(object sender, EventArgs e)
+        {
+            Send_Username_Password();
+            byte[] packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
+            networkStream.Write(packet, 0, packet.Length);
+        }
+        private void btnSignup_Click(object sender, EventArgs e)
+        {
+            Send_Username_Password();
+            byte[] packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
+            networkStream.Write(packet, 0, packet.Length);
+        }
+        private void VerifyLogin(int serverResponse)
+        {
+            
+            switch (serverResponse)
+            {
+                case 0:
+                    tb_Jogador.Clear();
+                    tb_Password.Clear();
+                    MessageBox.Show("Crendeciais incorretas");
+                    break;
+                case 1:
+                    tb_Password.Text = "UTILIZADOR LIGADO";
+                    tb_Password.BackColor = Color.LightGreen;
+                    break;
+                case 2:
+                    MessageBox.Show("Não pode enviar mensagens, faça login!", "Erro de autenticação", MessageBoxButtons.OK);
+                    break;
+            }
+        }
+        private void VerifyRegister(int serverResponse)
+        {
+            switch (serverResponse)
+            {
+                case 0:
+                    tb_Jogador.Clear();
+                    tb_Password.Clear();
+                    MessageBox.Show("Verifique o username e password introduzidos!", "Erro ao registar utilizador");
+                    break;
+                case 1:
+                    tb_Password.Clear();
+                    MessageBox.Show("Faça login!", "Utilizador Registado com sucesso");
+                    break;
+            }
+        }
+        private void PlayersBoardUpdate(byte[] data)
+        {
+            lbPlayersBoard.Items.Clear();
+
+            List<string> usersLogged = (List<string>)TSCryptography.ByteArrayToObject(data);
+            foreach(string user in usersLogged)
+            {
+                lbPlayersBoard.Items.Add(user);
+            }
+            
+        }
+        private void Send_Username_Password()
         {
             byte[] packet;
 
-         
             //Enviamos encriptado os dados do username
             byte[] username = Encoding.UTF8.GetBytes(tb_Jogador.Text);
             byte[] encryptedData = tsCrypto.SymetricEncryption(username);
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
-            Thread.Sleep(1000);
-            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-            //{
-            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-            //}
 
-            Console.WriteLine("Username encriptado: " + Convert.ToBase64String(packet));
+            //Aguarda confirmação da receção do username
+            while (!Acknoledged) { } 
+            Acknoledged = false;
+            //Thread.Sleep(1000);
+
 
             //Enviamos encriptado os dados da password
             byte[] password = Encoding.UTF8.GetBytes(tb_Password.Text);
             encryptedData = tsCrypto.SymetricEncryption(password);
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
-            
-            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-            //{
-            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-            //}
 
-            Console.WriteLine("Password encriptado: " + Convert.ToBase64String(packet));
+            //Aguarda confirmação da receção do username
+            while (!Acknoledged) { }
+            Acknoledged = false;
+
         }
         private void StartGame()
         {
@@ -286,7 +355,9 @@ namespace JogoDoGalo
 
         private void sairToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CloseClient();
+            this.Close();
         }
+
+        
     }
 }

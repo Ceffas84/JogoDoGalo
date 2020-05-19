@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -198,6 +199,26 @@ namespace JogoDoGalo_Server.Models
         {
             Rfc2898DeriveBytes rfc2898 = new Rfc2898DeriveBytes(plainText, salt, NUMBER_OF_ITERATIONS);
             return rfc2898.GetBytes(32);
+        }
+        public static byte[] ObjectToByteArray(object obj)
+        {
+            if (obj == null)
+                return null;
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bf.Serialize(ms, obj);
+                return ms.ToArray();
+            }
+        }
+        public static Object ByteArrayToObject(byte[] byteArray)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
+            memoryStream.Write(byteArray, 0, byteArray.Length);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            Object obj = (Object)binaryFormatter.Deserialize(memoryStream);
+            return obj;
         }
     }
 }
