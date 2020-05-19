@@ -23,7 +23,12 @@ namespace JogoDoGalo_Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
+<<<<<<< Updated upstream
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
+=======
+                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\Database1.mdf';Integrated Security=True");
+
+>>>>>>> Stashed changes
                 // Abrir ligação à Base de Dados
                 conn.Open();
 
@@ -79,7 +84,11 @@ namespace JogoDoGalo_Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
+<<<<<<< Updated upstream
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
+=======
+                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\Database1.mdf';Integrated Security=True");
+>>>>>>> Stashed changes
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
