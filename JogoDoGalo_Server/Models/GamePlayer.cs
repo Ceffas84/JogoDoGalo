@@ -16,12 +16,12 @@ namespace JogoDoGalo_Server.Models
         public GamePlayer()
         {
         }
-        public GamePlayer(string name, char gameSymbol)
+        public GamePlayer(int playerId, string name, char gameSymbol)
         {
-            this.PlayerId = new int();
+            this.PlayerId = playerId;
             this.Name = name;
-            this.NumberGamePlay = 0;
             this.GameSymbol = gameSymbol;
+            this.NumberGamePlay = 0;
         }
         public int GetPlayerId()
         {
@@ -30,6 +30,10 @@ namespace JogoDoGalo_Server.Models
         public string GetPlayerUsername()
         {
             return Name;
+        }
+        public void IncNumberGamePLay()
+        {
+            NumberGamePlay++;
         }
     }
 }

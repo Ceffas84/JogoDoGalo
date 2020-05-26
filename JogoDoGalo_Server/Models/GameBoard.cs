@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JogoDoGalo_Server.Models
 {
-    class GameBoard
+    public class GameBoard
     {
         private int BoardDimension;
         private int SequenceSize;
@@ -29,10 +29,8 @@ namespace JogoDoGalo_Server.Models
         public void AddGamePLay(int coord_x, int coord_y)
         {
             GamePlay gamePlay = new GamePlay(coord_x, coord_y, GameTurn);
-            PlayList.Add(gamePlay);   
-        }
-        public void IncPlayCounter()
-        {
+            PlayList.Add(gamePlay);
+            GameTurn.IncNumberGamePLay();
             PlayCounter++;
         }
         public bool CheckPLayerWins(GamePlayer player)
@@ -95,7 +93,7 @@ namespace JogoDoGalo_Server.Models
             }
             return false;
         }
-        private bool GamePlayExist(int coord_x, int coord_y)
+        public bool GamePlayExist(int coord_x, int coord_y)
         {
             foreach(GamePlay gamePLay in PlayList)
             {
@@ -149,7 +147,7 @@ namespace JogoDoGalo_Server.Models
             }
             return sequenceSize;
         }
-        public GamePlayer GetNextPlayer()
+        public GamePlayer PlayerTurn()
         {
             return GameTurn;
         }
@@ -164,6 +162,14 @@ namespace JogoDoGalo_Server.Models
         public void UpdateGameState(GameState newState)
         {
             this.gameState = newState;
+        }
+        public bool isPlayerTurn(int idGamePlayer)
+        {
+            if(idGamePlayer == this.GameTurn.GetPlayerId())
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

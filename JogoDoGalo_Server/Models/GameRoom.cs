@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 
 namespace JogoDoGalo_Server.Models
 {
-    public enum GameState
+    class GameRoom
     {
-        Standby,
-        OnGoing,
-        GameOver
+        private List<User> listUsers;
+        public GameBoard gameBoard;
+        public GameRoom()
+        {
+
+        }
     }
 }

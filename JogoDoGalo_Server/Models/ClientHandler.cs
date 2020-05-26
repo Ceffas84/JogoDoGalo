@@ -23,10 +23,13 @@ namespace JogoDoGalo_Server.Models
 
 
         private List<User> gameRoom;
+        private GameBoard gameBoard;
+
         private TSCryptography tsCrypto;
         private Authentication Auth;
-        private ProtocolSI protocolSI; // teste
-        private GameBoard gameBoard;
+        private ProtocolSI protocolSI;
+        private NetworkStream networkStream;
+        
 
         private byte[] digitalSignature;
         private byte[] data;
@@ -34,9 +37,10 @@ namespace JogoDoGalo_Server.Models
         private byte[] encryptedData;
         private byte[] decryptedData;
         private byte[] packet;
-        public ClientHandler(List<User> gameroom)
+        public ClientHandler(List<User> gameroom, GameBoard gameboard)
         {
             this.gameRoom = gameroom;
+            this.gameBoard = gameboard;
             this.tsCrypto = new TSCryptography();
             this.Auth = new Authentication();
             this.protocolSI = new ProtocolSI();
@@ -57,7 +61,9 @@ namespace JogoDoGalo_Server.Models
             user.IV = tsCrypto.GetIV();
 
             //Abrimos um novo canal de comunicação
-            NetworkStream networkStream = user.TcpClient.GetStream();
+            //NetworkStream networkStream = user.TcpClient.GetStream();
+            networkStream = user.TcpClient.GetStream();
+
             //ProtocolSI protocolSI = new ProtocolSI();
 
             //Lançamos a thread num loop
@@ -206,7 +212,32 @@ namespace JogoDoGalo_Server.Models
                         packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, OK);
                         networkStream.Write(packet, 0, packet.Length);
                         break;
+                    case ProtocolSICmdType.USER_OPTION_7:
+                        //Recebe a jogada do user e desencripta
+                        encryptedData = protocolSI.GetData();
+                        byte[] jogada = tsCrypto.SymetricDecryption(encryptedData);
+                        int coord_x = jogada[0];
+                        int coord_y = jogada[1];
 
+                        //Verifica se a jogada exite
+                        if(!gameBoard.GamePlayExist(coord_x, coord_y))
+                        {
+                            decryptedData[0] = (int)ServerResponse.INVALID_PLAY;
+                            SendEncryptedProtocol(ProtocolSICmdType.USER_OPTION_1, decryptedData);
+                            break;
+                        }
+
+                        //Verifica se o jogador que enviou a jogada é o jogador a jogar
+                        if (!gameBoard.isPlayerTurn(user.playerID))
+                        {
+                            decryptedData[0] = (int)ServerResponse.NOT_YOUR_TURN;
+                            SendEncryptedProtocol(ProtocolSICmdType.USER_OPTION_1, decryptedData);
+                            break;
+                        }
+
+
+
+                        break;
                     case ProtocolSICmdType.EOT:
                         Console.WriteLine("Ending Thread from Client " + user.UserID);
 
@@ -239,14 +270,17 @@ namespace JogoDoGalo_Server.Models
 
                                 List<object> gameStart = new List<object>();
                                 gameStart.Add(boardDimension);
-                                gameStart.Add(gameBoard.GetNextPlayer());
+                                gameStart.Add(gameBoard.PlayerTurn());
 
-                                BroadCastObject(ProtocolSICmdType.USER_OPTION_9,gameStart, gameRoom);
+                                BroadCastObject(ProtocolSICmdType.USER_OPTION_9, gameStart);
                             }
                             else
                             {
                                 packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, NOT_ENOUGH_PLAYERS_LOGGED);
                                 networkStream.Write(packet, 0, packet.Length);
+
+                                //decryptedData[0] = (int)ServerResponse.NOT_ENOUGH_PLAYERS;
+                                //SendEncryptedProtocol(ProtocolSICmdType.USER_OPTION_1, decryptedData);
                             }
                         }
                         else
@@ -277,8 +311,8 @@ namespace JogoDoGalo_Server.Models
             foreach (User user in gameRoom)
             {  
                 TSCryptography tsCryptoBroadCast = new TSCryptography(user.IV, user.SymKey);
-                ProtocolSI protocolSI = new ProtocolSI();
-                NetworkStream networkStream = user.TcpClient.GetStream();
+                //ProtocolSI protocolSI = new ProtocolSI();
+                NetworkStream streamBroadCast = user.TcpClient.GetStream();
                 string str_player_plus_message;
                 byte[] player_plus_message;
 
@@ -298,12 +332,12 @@ namespace JogoDoGalo_Server.Models
                 byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(player_plus_message);
                 byte[] packet = protocolSI.Make(protocolSICmdType, encryptedMsg);
                 
-                networkStream.Write(packet, 0, packet.Length);
+                streamBroadCast.Write(packet, 0, packet.Length);
                 //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
                 //{
                 //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
                 //}
-                networkStream.Flush();
+                streamBroadCast.Flush();
             }
         }
         private int LoggedUsersCount()
@@ -324,7 +358,8 @@ namespace JogoDoGalo_Server.Models
             {
                 if (user.isLogged)
                 {
-                    gamePlayers.Add(new GamePlayer(user.username, gamePlayers.Count == 0 ? 'O' : 'X'));
+                    gamePlayers.Add(new GamePlayer(gamePlayers.Count+1, user.username, gamePlayers.Count == 0 ? 'O' : 'X'));
+                    user.playerID = gamePlayers.Count;
                 }
 
                 if(gamePlayers.Count > 1)
@@ -336,7 +371,6 @@ namespace JogoDoGalo_Server.Models
         private void BroadLoggedUsers(ProtocolSICmdType protocolSICmdType, string data, User playerWhoSentMsg, List<User> gameRoom)
         {
             List<string> usersLogged = new List<string>();
-            byte[] loggedUsers;
             for (int i = 0; i < gameRoom.Count(); i++)
             {
                 if (gameRoom[i].isLogged)
@@ -344,28 +378,9 @@ namespace JogoDoGalo_Server.Models
                     usersLogged.Add(gameRoom[i].username);
                 }
             }
-            loggedUsers = TSCryptography.ObjectToByteArray(usersLogged);
-
-
-            foreach (User user in gameRoom)
-            {
-                if (user.isLogged)
-                {
-                    TSCryptography tsCryptoBroadCast = new TSCryptography(user.IV, user.SymKey);
-                    ProtocolSI protocolSI = new ProtocolSI();
-                    NetworkStream networkStream = user.TcpClient.GetStream();
-
-                    //byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(data);
-                    byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(loggedUsers);
-
-                    byte[] packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3, encryptedMsg);
-
-                    networkStream.Write(packet, 0, packet.Length);
-                    networkStream.Flush();
-                }
-            }
+            BroadCastObject(protocolSICmdType, usersLogged);
         }
-        private void BroadCastObject(ProtocolSICmdType protocolSICmdType, object obj, List<User> gameRoom)
+        private void BroadCastObject(ProtocolSICmdType protocolSICmdType, object obj)
         { 
             decryptedData = TSCryptography.ObjectToByteArray(obj);
 
@@ -374,16 +389,8 @@ namespace JogoDoGalo_Server.Models
                 if (user.isLogged)
                 {
                     TSCryptography tsCryptoBroadCast = new TSCryptography(user.IV, user.SymKey);
-                    ProtocolSI protocolSI = new ProtocolSI();
-                    NetworkStream networkStream = user.TcpClient.GetStream();
-
-                    //byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(data);
-                    byte[] encryptedMsg = tsCryptoBroadCast.SymetricEncryption(decryptedData);
-
-                    byte[] packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, encryptedMsg);
-
-                    networkStream.Write(packet, 0, packet.Length);
-                    networkStream.Flush();
+                    NetworkStream streamBroadCast = user.TcpClient.GetStream();
+                    StreamCryptoSendEncryptedProtocol(streamBroadCast, tsCryptoBroadCast, protocolSICmdType, decryptedData);
                 }
             }
         }
@@ -393,6 +400,20 @@ namespace JogoDoGalo_Server.Models
             byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);
             networkStream.Write(ack, 0, ack.Length);
             networkStream.Flush();
+        }
+        private void SendEncryptedProtocol(ProtocolSICmdType protocolSICmdType, byte[] data)
+        {
+            byte[] encrypteData = tsCrypto.SymetricEncryption(data);
+            byte[] packet = protocolSI.Make(protocolSICmdType, encrypteData);
+            networkStream.Write(packet, 0, packet.Length);
+            networkStream.Flush();
+        }
+        private void StreamCryptoSendEncryptedProtocol(NetworkStream stream, TSCryptography tsCryptography, ProtocolSICmdType protocolSICmdType, byte[] data)
+        {
+            byte[] encrypteData = tsCryptography.SymetricEncryption(data);
+            byte[] packet = protocolSI.Make(protocolSICmdType, encrypteData);
+            stream.Write(packet, 0, packet.Length);
+            stream.Flush();
         }
     }
 }

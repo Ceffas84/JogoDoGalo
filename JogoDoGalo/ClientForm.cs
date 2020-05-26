@@ -251,7 +251,6 @@ namespace JogoDoGalo
             foreach(Button bytton in gameBoard)
             {
 
-                if()
             }
             return null;
         }

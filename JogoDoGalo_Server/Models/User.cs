@@ -19,11 +19,11 @@ namespace JogoDoGalo_Server.Models
         public byte[] salt { get; set; }
         public byte[] saltedPasswordHash { set; get; }
         public bool isLogged { get; set; }
+        public int playerID { get; set; }
         public User()
         {
 
         }
-
         public override string ToString()
         {
             return string.Concat(UserID);
