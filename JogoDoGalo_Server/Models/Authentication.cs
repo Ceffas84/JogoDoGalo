@@ -77,7 +77,7 @@ namespace JogoDoGalo_Server.Models
                 return false;
             }
         }
-        public void Register(byte[] username, byte[] saltedPasswordHash, byte[] salt)
+        public void Register(string username, byte[] saltedPasswordHash, byte[] salt)
         {
             SqlConnection conn = null;
             try
@@ -95,7 +95,7 @@ namespace JogoDoGalo_Server.Models
 
                 // Declaração dos parâmetros do comando SQL
                 //SqlParameter paramId = new SqlParameter("@Id", default);
-                SqlParameter paramUsername = new SqlParameter("@Username", Encoding.UTF8.GetString(username));
+                SqlParameter paramUsername = new SqlParameter("@Username", username);
                 SqlParameter paramSaltedPasswordHash = new SqlParameter("@SaltedPasswordHash", saltedPasswordHash);
                 SqlParameter paramSalt = new SqlParameter("@Salt", salt);
 
