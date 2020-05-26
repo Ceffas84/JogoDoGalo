@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ClientForm));
-            this.button1 = new System.Windows.Forms.Button();
             this.bt_EnviaMensagem = new System.Windows.Forms.Button();
             this.tb_EscreveMensagem = new System.Windows.Forms.TextBox();
             this.btnLogin = new System.Windows.Forms.Button();
@@ -44,30 +43,20 @@
             this.btnSignup = new System.Windows.Forms.Button();
             this.gBoxChat = new System.Windows.Forms.GroupBox();
             this.gbPlayersBoard = new System.Windows.Forms.GroupBox();
+            this.lbPlayersBoard = new System.Windows.Forms.ListBox();
             this.btnAddClient = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
             this.sairToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.lbPlayersBoard = new System.Windows.Forms.ListBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btnGameStart = new System.Windows.Forms.Button();
+            this.gameDisplay = new System.Windows.Forms.Label();
             this.gBoxServer.SuspendLayout();
             this.gBoxChat.SuspendLayout();
             this.gbPlayersBoard.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(45, 73);
-            this.button1.Margin = new System.Windows.Forms.Padding(2);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(121, 19);
-            this.button1.TabIndex = 34;
-            this.button1.Text = "Botao Teste Jogo";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // bt_EnviaMensagem
             // 
@@ -215,6 +204,14 @@
             this.gbPlayersBoard.TabStop = false;
             this.gbPlayersBoard.Text = "Jogadores Ligados";
             // 
+            // lbPlayersBoard
+            // 
+            this.lbPlayersBoard.FormattingEnabled = true;
+            this.lbPlayersBoard.Location = new System.Drawing.Point(6, 19);
+            this.lbPlayersBoard.Name = "lbPlayersBoard";
+            this.lbPlayersBoard.Size = new System.Drawing.Size(258, 121);
+            this.lbPlayersBoard.TabIndex = 36;
+            // 
             // btnAddClient
             // 
             this.btnAddClient.Location = new System.Drawing.Point(135, 19);
@@ -254,17 +251,8 @@
             this.sairToolStripMenuItem.Text = "Sair";
             this.sairToolStripMenuItem.Click += new System.EventHandler(this.sairToolStripMenuItem_Click);
             // 
-            // lbPlayersBoard
-            // 
-            this.lbPlayersBoard.FormattingEnabled = true;
-            this.lbPlayersBoard.Location = new System.Drawing.Point(6, 19);
-            this.lbPlayersBoard.Name = "lbPlayersBoard";
-            this.lbPlayersBoard.Size = new System.Drawing.Size(258, 121);
-            this.lbPlayersBoard.TabIndex = 36;
-            // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.button1);
             this.groupBox2.Controls.Add(this.btnGameStart);
             this.groupBox2.Controls.Add(this.btnAddClient);
             this.groupBox2.Location = new System.Drawing.Point(303, 495);
@@ -283,12 +271,26 @@
             this.btnGameStart.TabIndex = 36;
             this.btnGameStart.Text = "START";
             this.btnGameStart.UseVisualStyleBackColor = true;
+            this.btnGameStart.Click += new System.EventHandler(this.btnGameStart_Click);
+            // 
+            // gameDisplay
+            // 
+            this.gameDisplay.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.gameDisplay.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gameDisplay.ForeColor = System.Drawing.Color.White;
+            this.gameDisplay.Location = new System.Drawing.Point(174, 465);
+            this.gameDisplay.Name = "gameDisplay";
+            this.gameDisplay.Size = new System.Drawing.Size(259, 27);
+            this.gameDisplay.TabIndex = 43;
+            this.gameDisplay.Text = "Faça Login";
+            this.gameDisplay.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(884, 661);
+            this.Controls.Add(this.gameDisplay);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.gbPlayersBoard);
@@ -312,8 +314,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button bt_EnviaMensagem;
         private System.Windows.Forms.TextBox tb_EscreveMensagem;
         private System.Windows.Forms.Button btnLogin;
@@ -335,6 +335,7 @@
         private System.Windows.Forms.ListBox lbPlayersBoard;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button btnGameStart;
+        private System.Windows.Forms.Label gameDisplay;
     }
 }
 

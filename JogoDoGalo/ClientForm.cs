@@ -27,11 +27,24 @@ namespace JogoDoGalo
         private NetworkStream networkStream;
         private ProtocolSI protocolSI;
         private TSCryptography tsCrypto;
-        private string publicKey;
+        private List<Button> gameBoard;
         private Thread thread;
+
+        private string publicKey;
+        private string privateKey;
+
         private byte[] decryptedSymKey;
         private byte[] decryptedIV;
+
+        private string username;
+
+        byte[] packet;
+        byte[] encryptedData;
+        byte[] decryptedData;
+        
         private bool Acknoledged = false;
+
+        private bool isYourTurn;
         public ClientForm()
         {
             InitializeComponent();
@@ -50,12 +63,11 @@ namespace JogoDoGalo
             thread.Start(tcpClient);
 
             publicKey = tsCrypto.GetPublicKey();
-            
-            Console.WriteLine("Chave publica: {0}", publicKey);
+            privateKey = tsCrypto.GetPrivateKey();
+            //Console.WriteLine("Chave publica: {0}", publicKey);
 
             byte[] packet = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
             networkStream.Write(packet, 0, packet.Length);
-
 
             //ServerHandler serverHandler = new ServerHandler(tcpClient);
             //serverHandler.Handle();
@@ -114,10 +126,10 @@ namespace JogoDoGalo
 
                         case ProtocolSICmdType.USER_OPTION_1:
                             result = protocolSI.GetIntFromData();
-                            Invoke(new Action(() => { VerifyLogin(result); }));
+                            Invoke(new Action(() => { ReturnError(result); }));
                             break;
 
-                            //Receção de resposta so servidor ao pedido de registo
+                            //Receção de resposta do servidor ao pedido de registo
                         case ProtocolSICmdType.USER_OPTION_2:
                             result = protocolSI.GetIntFromData();
                             Invoke(new Action(() => { VerifyRegister(result); }));
@@ -130,12 +142,19 @@ namespace JogoDoGalo
 
                             Invoke(new Action(() => { PlayersBoardUpdate(decryptedData); }));
                             break;
+                        case ProtocolSICmdType.USER_OPTION_4:
+                            Invoke(new Action(() => { MessageBox.Show("Comunicação corrompida!"); }));
+                            break;
 
                         case ProtocolSICmdType.EOT:
                             SendAcknowledged(protocolSI, networkStream);
                             Acknoledged = true;
                             break;
-
+                        case ProtocolSICmdType.USER_OPTION_9:
+                            encryptedData = protocolSI.GetData();
+                            byte[] gameStart = tsCrypto.SymetricDecryption(encryptedData);
+                            Invoke(new Action(() => { StartGame(gameStart); }));
+                            break;
                         case ProtocolSICmdType.ACK:
                             Acknoledged = true;
                             break;
@@ -177,9 +196,16 @@ namespace JogoDoGalo
                 string msg = tb_EscreveMensagem.Text;
                 tb_EscreveMensagem.Clear();
 
-                byte[] encryptedMsg = tsCrypto.SymetricEncryption(Encoding.UTF8.GetBytes(msg));
-                byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA, encryptedMsg);
+                //Enviamos um pacote com uma mensagem e a assinatura digital
+                Send_Data_DigitalSignature(Encoding.UTF8.GetBytes(msg));
+
+                //Enviamos a infomação ao servidor que o pacote recebido foi uma mensagem do chat
+                byte[] packet = protocolSI.Make(ProtocolSICmdType.DATA);
                 networkStream.Write(packet, 0, packet.Length);
+                // Aguarda confirmação da receção do username
+                while (!Acknoledged) { }
+                Acknoledged = false;
+
                 networkStream.Flush();
             }
         }
@@ -194,6 +220,7 @@ namespace JogoDoGalo
         }
         private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
         {
+            gameBoard = new List<Button>();
             int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
             int buttonSize = (size - (padding * (numButtons + 1))) / numButtons;
             for (int I = 0; I < dimensaoTabuleiro; I++)
@@ -207,29 +234,26 @@ namespace JogoDoGalo
                     newButton.Width = buttonSize;
                     newButton.Height = buttonSize;
                     newButton.BackColor = System.Drawing.Color.LightGray;
-                    newButton.Click += Tabuleiro_Click;
+                    newButton.Click += BoardClick;
+                    gameBoard.Add(newButton);
                     this.Controls.Add(newButton);
                 }
             }
         }
-        private void Tabuleiro_Click(object sender, EventArgs e)
+        private void BoardClick(object sender, EventArgs e)
         {
-
             Button clickedButton = sender as Button;
             List<int> coord = GetClickedButton(clickedButton);
+        }
+        private Button GetButton(int x, int y)
+        {
 
+            foreach(Button bytton in gameBoard)
+            {
 
-
-            //Cria-se e introduz-se a jogada
-
-            //Atualiza-se o botão com o simbolo do jogador que jogou
-
-            //clickedButton.Text = jogadaIntroduzida.Jogador.Simbolo.ToString();
-
-            //Verifica-se se o jogador ganhou o jogo
-
-            //Verifica se foi a ultima jogada
-
+                if()
+            }
+            return null;
         }
         private List<int> GetClickedButton(Button clickedButton)
         {
@@ -239,10 +263,6 @@ namespace JogoDoGalo
             coord.Add(int.Parse(a[0]));
             return coord;
         }
-        private void button1_Click(object sender, EventArgs e)
-        {
-            IniciarJogo();
-        }
         private void ClientForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             CloseClient();
@@ -250,17 +270,13 @@ namespace JogoDoGalo
         private void CloseClient()
         {
             //Preparar o envio da mensagem para desligar as ligações
-            
             byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(eot, 0, eot.Length);
-            
-
-            
+                        
             //Aguarda confirmação da receção do username
             while (!Acknoledged) { }
             Acknoledged = false;
             Thread.Sleep(2000);
-
 
             networkStream.Close();
             tcpClient.Close();
@@ -270,14 +286,22 @@ namespace JogoDoGalo
             Send_Username_Password();
             byte[] packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
             networkStream.Write(packet, 0, packet.Length);
+
+            //Aguarda confirmação da receção do pedido de login
+            while (!Acknoledged) { }
+            Acknoledged = false;
         }
         private void btnSignup_Click(object sender, EventArgs e)
         {
             Send_Username_Password();
             byte[] packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
             networkStream.Write(packet, 0, packet.Length);
+
+            //Aguarda confirmação da receção do pedido de signup
+            while (!Acknoledged) { }
+            Acknoledged = false;
         }
-        private void VerifyLogin(int serverResponse)
+        private void ReturnError(int serverResponse)
         {
             
             switch (serverResponse)
@@ -290,9 +314,13 @@ namespace JogoDoGalo
                 case 1:
                     tb_Password.Text = "UTILIZADOR LIGADO";
                     tb_Password.BackColor = Color.LightGreen;
+                    username = tb_Jogador.Text;
                     break;
                 case 2:
-                    MessageBox.Show("Não pode enviar mensagens, faça login!", "Erro de autenticação", MessageBoxButtons.OK);
+                    MessageBox.Show("Não está autenticado, faça login!", "Erro de autenticação", MessageBoxButtons.OK);
+                    break;
+                case 9:
+                    MessageBox.Show("Não existem jogadores suficientes loggados", "Erro ao iniciar jogo", MessageBoxButtons.OK);
                     break;
             }
         }
@@ -337,7 +365,6 @@ namespace JogoDoGalo
             Acknoledged = false;
             //Thread.Sleep(1000);
 
-
             //Enviamos encriptado os dados da password
             byte[] password = Encoding.UTF8.GetBytes(tb_Password.Text);
             encryptedData = tsCrypto.SymetricEncryption(password);
@@ -349,9 +376,32 @@ namespace JogoDoGalo
             Acknoledged = false;
 
         }
-        private void StartGame()
+        private void Send_Data_DigitalSignature(byte[] data)
         {
+            byte[] packet;
+            Console.WriteLine("Dados enviados: {0}", Encoding.UTF8.GetString(data));
 
+            //Enviamos os dados encriptados
+            byte[] encryptedData = tsCrypto.SymetricEncryption(data);
+            Console.WriteLine("Dados encriptados: {0}", Convert.ToBase64String(encryptedData));
+
+            packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
+            networkStream.Write(packet, 0, packet.Length);
+
+            //Aguarda confirmação da receção dos dados
+            while (!Acknoledged) { }
+            Acknoledged = false;
+
+            //Enviamos a assinatura digital
+            byte[] digitalSignature = tsCrypto.SignData(tsCrypto.SymetricDecryption(encryptedData), tsCrypto.GetPrivateKey());
+            Console.WriteLine("Assinatura digital: {0}",Convert.ToBase64String(digitalSignature));
+
+            packet = protocolSI.Make(ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
+            networkStream.Write(packet, 0, packet.Length);
+
+            //Aguarda confirmação da receção do username
+            while (!Acknoledged) { }
+            Acknoledged = false;
         }
 
         private void sairToolStripMenuItem_Click(object sender, EventArgs e)
@@ -359,6 +409,45 @@ namespace JogoDoGalo
             this.Close();
         }
 
-        
+        private void btnGameStart_Click(object sender, EventArgs e)
+        {
+            encryptedData = tsCrypto.SymetricEncryption(Encoding.UTF8.GetBytes(dimensaoTabuleiro.ToString()));
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, encryptedData);
+            networkStream.Write(packet, 0, packet.Length);
+        }
+        private void StartGame(byte[] data)
+        {
+            List<object> gameStart = (List<object>)TSCryptography.ByteArrayToObject(data);
+            GamePlayer gamePlayer = (GamePlayer)gameStart[1];
+
+            DesenharTabuleiro(100, 50, 400,(int) gameStart[0]);
+
+            if(gamePlayer.GetPlayerUsername() == tb_Jogador.Text)
+            {
+                isYourTurn = true;
+                gameDisplay.Text = "Jogue!";
+                gameDisplay.BackColor = Color.Green;
+                EnableGameBoard(true);
+            }
+            else
+            {
+                isYourTurn = true;
+                gameDisplay.Text = string.Format("Espere que {0} faça a sua jogada!", gamePlayer.GetPlayerUsername());
+                gameDisplay.BackColor = Color.Gray;
+                EnableGameBoard(false);      
+            }
+        }
+        private void EnableGameBoard(bool state)
+        {
+            foreach (Button button in gameBoard)
+            {
+                button.Enabled = state;
+            }
+        }
+        private void UpdateGameBoard(byte[] data)
+        {
+
+        }
+
     }
 }
