@@ -122,40 +122,36 @@ namespace JogoDoGalo
 
                             SendAcknowledged(protocolSI, networkStream);
                             break;
-                            //Receção de resposta so servidor ao pedido de Login
 
-                        case ProtocolSICmdType.USER_OPTION_1:
+                            //Receção de resposta do servidor
+                       case ProtocolSICmdType.USER_OPTION_1:
                             result = protocolSI.GetIntFromData();
-                            Invoke(new Action(() => { ReturnError(result); }));
-                            break;
-
-                            //Receção de resposta do servidor ao pedido de registo
-                        case ProtocolSICmdType.USER_OPTION_2:
-                            result = protocolSI.GetIntFromData();
-                            Invoke(new Action(() => { VerifyRegister(result); }));
+                            Invoke(new Action(() => { checkServerResponse(result); }));
                             break;
 
                             //Receção de Brodcast do servidor com um novo user logged in
-                        case ProtocolSICmdType.USER_OPTION_3:
+                       case ProtocolSICmdType.USER_OPTION_3:
                             byte[] encryptedData = protocolSI.GetData();
                             byte[] decryptedData = tsCrypto.SymetricDecryption(encryptedData);
-
                             Invoke(new Action(() => { PlayersBoardUpdate(decryptedData); }));
                             break;
-                        case ProtocolSICmdType.USER_OPTION_4:
+
+                       case ProtocolSICmdType.USER_OPTION_4:
                             Invoke(new Action(() => { MessageBox.Show("Comunicação corrompida!"); }));
                             break;
 
-                        case ProtocolSICmdType.EOT:
+                       case ProtocolSICmdType.EOT:
                             SendAcknowledged(protocolSI, networkStream);
                             Acknoledged = true;
                             break;
-                        case ProtocolSICmdType.USER_OPTION_9:
+
+                       case ProtocolSICmdType.USER_OPTION_9:
                             encryptedData = protocolSI.GetData();
                             byte[] gameStart = tsCrypto.SymetricDecryption(encryptedData);
                             Invoke(new Action(() => { StartGame(gameStart); }));
                             break;
-                        case ProtocolSICmdType.ACK:
+
+                       case ProtocolSICmdType.ACK:
                             Acknoledged = true;
                             break;
                     }
@@ -300,44 +296,44 @@ namespace JogoDoGalo
             while (!Acknoledged) { }
             Acknoledged = false;
         }
-        private void ReturnError(int serverResponse)
+        private void checkServerResponse(int serverResponse)
         {
-            
             switch (serverResponse)
             {
                 case 0:
                     tb_Jogador.Clear();
                     tb_Password.Clear();
-                    MessageBox.Show("Crendeciais incorretas");
+                    MessageBox.Show("Verifique o username e password introduzidos.", "Erro de Login!");
                     break;
                 case 1:
+                    tb_Jogador.Clear();
+                    tb_Password.Clear();
+                    MessageBox.Show("Não foi possível efetuar o seu registo. Verifique se cumpriu todas as regras para o registo", "Erro de registo.");
+                    break;
+                case 2:
+                    MessageBox.Show("Não está autenticado, faça login.", "Erro de autenticação", MessageBoxButtons.OK);
+                    break;
+                case 3:
+                    MessageBox.Show("ERRO NA ASSINATURA DIGITAL!!! - Apagat esta messagem depois do debug.");
+                    break;
+                case 10:
                     tb_Password.Text = "UTILIZADOR LIGADO";
                     tb_Password.BackColor = Color.LightGreen;
                     username = tb_Jogador.Text;
                     break;
-                case 2:
-                    MessageBox.Show("Não está autenticado, faça login!", "Erro de autenticação", MessageBoxButtons.OK);
+                case 11:
+                    tb_Password.Clear();
+                    MessageBox.Show("Utilizador Registado com sucesso. Faça login.", "Sucesso de Registo");
                     break;
-                case 9:
-                    MessageBox.Show("Não existem jogadores suficientes loggados", "Erro ao iniciar jogo", MessageBoxButtons.OK);
+                case 30:
+                    MessageBox.Show("Não existem jogadores suficientes loggados", "Erro de jogo", MessageBoxButtons.OK);
+                    break;
+                case 40:
+                    MessageBox.Show("Jogada inválida. Faça outra jogada.", "Erro de jogo.");
                     break;
             }
         }
-        private void VerifyRegister(int serverResponse)
-        {
-            switch (serverResponse)
-            {
-                case 0:
-                    tb_Jogador.Clear();
-                    tb_Password.Clear();
-                    MessageBox.Show("Verifique o username e password introduzidos!", "Erro ao registar utilizador");
-                    break;
-                case 1:
-                    tb_Password.Clear();
-                    MessageBox.Show("Faça login!", "Utilizador Registado com sucesso");
-                    break;
-            }
-        }
+        
         private void PlayersBoardUpdate(byte[] data)
         {
             lbPlayersBoard.Items.Clear();

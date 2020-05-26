@@ -1,4 +1,4 @@
-﻿using EI.SI;
+using EI.SI;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -108,8 +108,8 @@ namespace JogoDoGalo_Server.Models
                         {
                             if (!VerifiedDataSignature(user))
                             {
-                                //Constrói e envia para o cliente o vetor inicialização encriptado com a chave pública
-                                encryptedData = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
+                                //Caso a verificação devolva falso, envia para o cliente o código de erro relativo à assinatura digital.
+                                encryptedData = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.DIGITAL_SIGNITURE_ERROR);
                                 networkStream.Write(encryptedData, 0, encryptedData.Length);
                                 return;
                             }
@@ -123,12 +123,10 @@ namespace JogoDoGalo_Server.Models
                         }
                         else
                         {
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, NOTLOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.NOT_LOGGED);
                             networkStream.Write(packet, 0, packet.Length);
                         }
-
                         break;
-
 
                     case ProtocolSICmdType.SYM_CIPHER_DATA:
                         encryptedData = protocolSI.GetData();
@@ -180,7 +178,7 @@ namespace JogoDoGalo_Server.Models
                             if (Auth.VerifyLogin(user.username, Encoding.UTF8.GetString(user.password)))
                             {
                                 Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, user.UserID, user.username);
-                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, OK);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_SUCCESS);
                                 networkStream.Write(packet, 0, packet.Length);
                                 user.isLogged = true;
 
@@ -190,7 +188,7 @@ namespace JogoDoGalo_Server.Models
                             {
                                 Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, user.UserID);
 
-                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, ERROR);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_ERROR);
                                 networkStream.Write(packet, 0, packet.Length);
                             }
                         }
@@ -203,13 +201,14 @@ namespace JogoDoGalo_Server.Models
                         }
                         catch (Exception ex)
                         {
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, ERROR);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
                             networkStream.Write(packet, 0, packet.Length);
                             Console.WriteLine("Client_{0}: register unsuccessfull", user.UserID);
+                            break;
                         }
                         SendAcknowledged(protocolSI, networkStream);
                         Console.WriteLine("Client_{0}: {1} => register successfull", user.UserID, user.username);
-                        packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_2, OK);
+                        packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_SUCCESS);
                         networkStream.Write(packet, 0, packet.Length);
                         break;
                     case ProtocolSICmdType.USER_OPTION_7:
@@ -276,7 +275,7 @@ namespace JogoDoGalo_Server.Models
                             }
                             else
                             {
-                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, NOT_ENOUGH_PLAYERS_LOGGED);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.NOT_ENOUGH_PLAYERS);
                                 networkStream.Write(packet, 0, packet.Length);
 
                                 //decryptedData[0] = (int)ServerResponse.NOT_ENOUGH_PLAYERS;
@@ -285,7 +284,7 @@ namespace JogoDoGalo_Server.Models
                         }
                         else
                         {
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, NOTLOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.NOT_LOGGED);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;

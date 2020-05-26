@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -118,7 +118,7 @@ namespace JogoDoGalo_Server.Models
                 conn.Close();
                 if (lines == 0)
                 {
-                    // Se forem devolvidas 0 linhas alteradas então o não foi executado com sucesso
+                    // Se forem devolvidas 0 linhas alteradas então o INSERT não foi executado com sucesso
                     throw new Exception("Error while inserting an user");
                 }
                 Console.WriteLine("Registado com sucesso");
