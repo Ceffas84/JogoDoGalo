@@ -15,6 +15,7 @@ namespace JogoDoGalo_Server.Models
         private int PlayCounter;
         private List<GamePlayer> PlayersList;
         private GamePlayer GameTurn;
+        private GameState gameState;
         public GameBoard(int boardDimension, List<GamePlayer> gamePlayersList)
         {
             BoardDimension = boardDimension;
@@ -147,6 +148,22 @@ namespace JogoDoGalo_Server.Models
                     break;
             }
             return sequenceSize;
+        }
+        public GamePlayer GetNextPlayer()
+        {
+            return GameTurn;
+        }
+        public void GameStart()
+        {
+            this.gameState = GameState.OnGoing;
+        }
+        public GameState GetGameState()
+        {
+            return this.gameState;
+        }
+        public void UpdateGameState(GameState newState)
+        {
+            this.gameState = newState;
         }
     }
 }

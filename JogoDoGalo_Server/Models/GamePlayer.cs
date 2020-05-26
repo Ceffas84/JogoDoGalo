@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace JogoDoGalo_Server.Models
 {
-    class GamePlayer
+    [Serializable]
+    public class GamePlayer
     {
         private int PlayerId;
         private string Name;
@@ -25,6 +26,10 @@ namespace JogoDoGalo_Server.Models
         public int GetPlayerId()
         {
             return PlayerId;
+        }
+        public string GetPlayerUsername()
+        {
+            return Name;
         }
     }
 }
