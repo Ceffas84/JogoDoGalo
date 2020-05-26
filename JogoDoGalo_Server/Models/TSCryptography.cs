@@ -18,7 +18,8 @@ namespace JogoDoGalo_Server.Models
         private AesCryptoServiceProvider Aes;
         private RSACryptoServiceProvider Rsa;
         //
-        //Summary: Construtor da classe TSCryptography
+        //Summary: 
+        //      Construtor da classe TSCryptography
         //     Cria o objeto Aes com base num vetor de inicialização de numa chave simetrica aleatórias
         public TSCryptography()
         {
@@ -155,7 +156,7 @@ namespace JogoDoGalo_Server.Models
         //      Função que faz a desencriptação simétrica de um dado array de bytes
         //      Recebe como parametros um array de bytes e a chave a colocar na desencriptação assimétrica
         //Returns: 
-        //      Retorna um array de bytes desencriptado pelo objeto Rsa e a chave recebido
+        //      Retorna um array de bytes desencriptado pelo objeto Rsa e a chave recebida
         public byte[] RsaDecryption(byte[] data, string key)
         {
             Rsa.FromXmlString(key);
@@ -175,6 +176,13 @@ namespace JogoDoGalo_Server.Models
         public string GetPrivateKey()
         {
             return Rsa.ToXmlString(true);
+        }
+        //
+        //Summary:
+        //      Retorna a Publick e Private Key do Objecto RSA
+        public void SetRsaPublicKeyCryptography(string publicKey)
+        {
+            Rsa.FromXmlString(publicKey);
         }
         //
         //Summary: 
@@ -219,6 +227,51 @@ namespace JogoDoGalo_Server.Models
             memoryStream.Seek(0, SeekOrigin.Begin);
             Object obj = (Object)binaryFormatter.Deserialize(memoryStream);
             return obj;
+        }
+        public static byte[] GenerateHash(byte[] data)
+        {
+            byte[] hash;
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                hash = sha1.ComputeHash(data);
+            }
+            return hash;
+        }
+        public byte[] SignHash(byte[] hash, string key)
+        {
+            Rsa.FromXmlString(key);
+            byte[] signature;
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                signature = Rsa.SignHash(hash, CryptoConfig.MapNameToOID("SHA1"));
+                
+            }
+            return signature;
+        }
+        public byte[] SignData(byte[] data, string key)
+        {
+            Rsa.FromXmlString(key);
+            byte[] signedData;
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                signedData = Rsa.SignData(data, sha1);
+            }
+            return signedData;
+        }
+        public bool VerifyHash(byte[] hash, byte[] signature, string key)
+        {
+            SetRsaPublicKeyCryptography(key);
+            return Rsa.VerifyHash(hash, CryptoConfig.MapNameToOID("SHA1"), signature);
+        }
+        public bool VerifyData(byte[] data, byte[] signature, string key)
+        {
+            SetRsaPublicKeyCryptography(key);
+            bool verify;
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                verify = Rsa.VerifyData(data, sha1, signature);
+            }
+            return verify;
         }
     }
 }
