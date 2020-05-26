@@ -14,7 +14,7 @@ namespace JogoDoGalo_Server.Models
         public string PublicKey { get; set; }
         public byte[] SymKey { get; set; }
         public byte[] IV { get; set; }
-        public byte[] username { set; get; }
+        public string username { set; get; }
         public byte[] password { set; get; }
         public byte[] salt { get; set; }
         public byte[] saltedPasswordHash { set; get; }
