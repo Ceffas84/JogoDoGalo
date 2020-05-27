@@ -27,20 +27,20 @@ namespace Server.Models
             byte[] packet = protocolSI.Make(protocolSICmdType);
             stream.Write(packet, 0, packet.Length);
         }
-        public void SendEncrDigSignProtocol(NetworkStream stream, TSCryptography tsCryptoObj, ProtocolSICmdType protocolSICmdType, User activeUser, byte[] data)
-        {
-            SendProtocol(stream, ProtocolSICmdType.SYM_CIPHER_DATA, tsCryptoObj.SymetricEncryption(data));
-            WaitForAck();
+        //public void SendEncrDigSignProtocol(NetworkStream stream, TSCryptography tsCryptoObj, ProtocolSICmdType protocolSICmdType, Client activeUser, byte[] data)
+        //{
+        //    SendProtocol(stream, ProtocolSICmdType.SYM_CIPHER_DATA, tsCryptoObj.SymetricEncryption(data));
+        //    WaitForAck();
 
-            //tsCryptoObj.SetRsaPrivateKeyCryptography(privateKey);
-            byte[] digitalSignature = tsCryptoObj.SignData(data, activeUser.PrivateKey);
+        //    //tsCryptoObj.SetRsaPrivateKeyCryptography(privateKey);
+        //    byte[] digitalSignature = tsCryptoObj.SignData(data, activeUser.PrivateKey);
 
-            SendProtocol(stream, ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
-            WaitForAck();
+        //    SendProtocol(stream, ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
+        //    WaitForAck();
 
-            SendProtocol(stream, protocolSICmdType);
-            WaitForAck();
-        }
+        //    SendProtocol(stream, protocolSICmdType);
+        //    WaitForAck();
+        //}
         public void SendAcknowledged(ProtocolSI protocolSI, NetworkStream networkStream)
         {
             byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);

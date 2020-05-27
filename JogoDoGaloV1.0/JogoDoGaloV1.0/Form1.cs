@@ -104,8 +104,11 @@ namespace JogoDoGaloV1._0
 
                                 Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada"); }));
                             }
-                               
-                            
+
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            stream.Write(packet, 0, packet.Length);
+
+
                             break;
                         //******************   ABRETURA DE COMUNICAÇÃO ENCRIPTADA SIMÉTRICA   ******************
                         case ProtocolSICmdType.PUBLIC_KEY:
@@ -149,31 +152,11 @@ namespace JogoDoGaloV1._0
 
                 }
             }
+            tcpClient.Close();
+            stream.Close();
         }
-        public void SendProtocol(NetworkStream stream, ProtocolSICmdType protocolSICmdType, byte[] data)
-        {
-            byte[] packet = protocolSI.Make(protocolSICmdType, data);
-            stream.Write(packet, 0, packet.Length);
-        }
-        public void SendProtocol(NetworkStream stream, ProtocolSICmdType protocolSICmdType)
-        {
-            byte[] packet = protocolSI.Make(protocolSICmdType);
-            stream.Write(packet, 0, packet.Length);
-        }
-        public void SendEncrDigSignProtocol(NetworkStream stream, TSCryptography tsCryptoObj, ProtocolSICmdType protocolSICmdType, User activeUser, byte[] data)
-        {
-            SendProtocol(stream, ProtocolSICmdType.SYM_CIPHER_DATA, tsCryptoObj.SymetricEncryption(data));
-            WaitForAck();
-
-            //tsCryptoObj.SetRsaPrivateKeyCryptography(privateKey);
-            byte[] digitalSignature = tsCryptoObj.SignData(data, activeUser.PrivateKey);
-
-            SendProtocol(stream, ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
-            WaitForAck();
-
-            SendProtocol(stream, protocolSICmdType);
-            WaitForAck();
-        }
+       
+        
         public void SendAcknowledged(ProtocolSI protocolSI, NetworkStream networkStream)
         {
             byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);
@@ -190,9 +173,14 @@ namespace JogoDoGaloV1._0
         private void button1_Click(object sender, EventArgs e)
         {
             byte[] decryptedData = Encoding.UTF8.GetBytes(tbChat.Text);
-            
+
             //Envia um Protocol com a mensagem encriptada
-            byte[] encryptedData = tsCrypto.SymetricEncryption(decryptedData);
+            EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_1);
+        }
+
+        private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
+        {
+            byte[] encryptedData = tsCrypto.SymetricEncryption(data);
             byte[] packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
             while (!Acknoledged) { }
@@ -200,18 +188,67 @@ namespace JogoDoGaloV1._0
 
 
             //Cria e envia a assinatura digital da menssagem
-            byte[] digitalSignature = tsCrypto.SignData(decryptedData, privateKey);
+            byte[] digitalSignature = tsCrypto.SignData(data, privateKey);
             packet = protocolSI.Make(ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
             networkStream.Write(packet, 0, packet.Length);
             while (!Acknoledged) { }
             Acknoledged = false;
 
             //Envia o Protocol de comando
-            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1);
+            packet = protocolSI.Make(protocolCmd);
             networkStream.Write(packet, 0, packet.Length);
             while (!Acknoledged) { }
             Acknoledged = false;
+        }
 
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            CloseClient();
+        }
+
+        private void CloseClient()
+        {
+            //Preparar o envio da mensagem para desligar as ligações
+            byte[] eot = protocolSI.Make(ProtocolSICmdType.EOT);
+            networkStream.Write(eot, 0, eot.Length);
+
+            //Aguarda confirmação da receção do username
+            while (!Acknoledged) { }
+            Acknoledged = false;
+            Thread.Sleep(2000);
+
+            networkStream.Close();
+            tcpClient.Close();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Form1 newcliente = new Form1();
+            newcliente.Show();
+        }
+
+        private void btnLogin_Click(object sender, EventArgs e)
+        {
+            EncryptSignAndSendProtocol(Encoding.UTF8.GetBytes(tbUsername.Text), ProtocolSICmdType.USER_OPTION_1);
+
+            EncryptSignAndSendProtocol(Encoding.UTF8.GetBytes(tbPassword.Text), ProtocolSICmdType.USER_OPTION_2);
+
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
+            networkStream.Write(packet, 0, packet.Length);
+            while (!Acknoledged) { }
+            Acknoledged = false;
+        }
+
+        private void btnSignup_Click(object sender, EventArgs e)
+        {
+            EncryptSignAndSendProtocol(Encoding.UTF8.GetBytes(tbUsername.Text), ProtocolSICmdType.USER_OPTION_1);
+
+            EncryptSignAndSendProtocol(Encoding.UTF8.GetBytes(tbPassword.Text), ProtocolSICmdType.USER_OPTION_2);
+
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
+            networkStream.Write(packet, 0, packet.Length);
+            while (!Acknoledged) { }
+            Acknoledged = false;
         }
     }
 }

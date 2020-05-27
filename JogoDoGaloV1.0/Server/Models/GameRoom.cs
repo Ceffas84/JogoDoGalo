@@ -10,11 +10,11 @@ namespace Server.Models
     {
         class GameRoom
         {
-            public List<User> listUsers;
+            public List<Client> listUsers;
             public GameBoard gameBoard;
             public GameRoom()
             {
-                listUsers = new List<User>();
+                listUsers = new List<Client>();
                 gameBoard = new GameBoard();
             }
         }
