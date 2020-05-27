@@ -170,14 +170,14 @@ namespace Server
                         networkStream.Flush();
                         break;
 
-                    case ProtocolSICmdType.USER_OPTION_3:
+                    case ProtocolSICmdType.USER_OPTION_3:                   //PROCESSO LOGIN
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
 
                         if (!client.isLogged)
                         {
-                            if (client.username.Length > 0 && client.saltedPasswordHash.Length > 0)
+                            if (client.username.Length > 7 && client.password.Length > 7)
                             {
                                 if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
                                 {
@@ -196,6 +196,10 @@ namespace Server
                                     //networkStream.Write(packet, 0, packet.Length);
                                 }
                             }
+                            else
+                            {
+                                Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+                            }
                         }
                         else
                         {
@@ -209,24 +213,31 @@ namespace Server
                         //FAZ O REGISTO DE UM NOVO USER
                         if (!client.isLogged)
                         {
-                            try
+                            if (client.username.Length > 7 && client.password.Length > 7)
                             {
-                                Auth.Register(client.username, client.saltedPasswordHash, client.salt);
-                            }
-                            catch (Exception ex)
-                            {
-                                //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
-                                //networkStream.Write(packet, 0, packet.Length);
+                                try
+                                {
+                                    Auth.Register(client.username, client.saltedPasswordHash, client.salt);
+                                }
+                                catch (Exception ex)
+                                {
+                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
+                                    //networkStream.Write(packet, 0, packet.Length);
 
-                                Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
+                                    Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
+                                    packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                    networkStream.Write(packet, 0, packet.Length);
+                                    networkStream.Flush();
+                                    break;
+                                }
+                                Console.WriteLine("Client_{0}: register successfull", client.ClientID);
                                 packet = protocolSI.Make(ProtocolSICmdType.ACK);
                                 networkStream.Write(packet, 0, packet.Length);
-                                networkStream.Flush();
-                                break;
                             }
-                            Console.WriteLine("Client_{0}: register successfull", client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(packet, 0, packet.Length);
+                            else
+                            {
+                                Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+                            }
                         }
                         else
                         {
