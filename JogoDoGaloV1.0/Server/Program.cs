@@ -34,21 +34,41 @@ namespace Server
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             SERVERPUBLICKEY = rsa.ToXmlString(false);
             SERVERPRIVATEKEY = rsa.ToXmlString(true);
-            
+
+            Console.WriteLine("SERVER IS READY" + Environment.NewLine);
             while (true)
             {
-                //aceitar ligações
-                Client user = new Client();
-                user.TcpClient = tcpListener.AcceptTcpClient();
-                gameRoom.listUsers.Add(user);
-                user.ClientID = gameRoom.listUsers.Count();
+                //Client client = new Client();
+                //client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
 
-                Console.WriteLine("Client_{0} connected" + Environment.NewLine, user.ClientID);
+                //gameRoom.listUsers.Add(client);
+                //Console.WriteLine("Client_{0} added to the game room!" + Environment.NewLine, client.ClientID);
+                //client.ClientID = gameRoom.listUsers.Count();
+                //Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
 
+                ////Lança uma thread com um listner
+                //ClientHandler clientHandler = new ClientHandler(gameRoom);
+                //clientHandler.Handle();
 
-                //Lança uma thread com um listner
-                ClientHandler clientHandler = new ClientHandler(gameRoom);
-                clientHandler.Handle();
+                Client client = new Client();
+
+                if (tcpListener.Pending())
+                {
+                    if (gameRoom.listUsers.Count < 2)
+                    {
+                        //aceitar ligações
+                        client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
+
+                        gameRoom.listUsers.Add(client);
+                        client.ClientID = gameRoom.listUsers.Count();
+                        Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
+                        Console.WriteLine("Client_{0} added to the game room!" + Environment.NewLine, client.ClientID);
+
+                        //Lança uma thread com um listner
+                        ClientHandler clientHandler = new ClientHandler(gameRoom);
+                        clientHandler.Handle();
+                    }
+                }
             }
         }
     }
@@ -105,21 +125,18 @@ namespace Server
 
                 switch (protocolSI.GetCmdType())
                 {
-                    case ProtocolSICmdType.SYM_CIPHER_DATA:
+                    case ProtocolSICmdType.SYM_CIPHER_DATA:                 //RECEÇÃO DE UMA MENSAGEM ENCRYPTADA SIMETRICA
                         encryptedData = protocolSI.GetData();
                         decryptedData = tsCrypto.SymetricDecryption(encryptedData);
                         this.symDecipherData = decryptedData;
 
-
-
                         Console.WriteLine("SymCipherData recebida no servidor: {0}", Encoding.UTF8.GetString(this.symDecipherData));
 
-                        packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                        packet = protocolSI.Make(ProtocolSICmdType.ACK);    
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
-
                         break;
-                    case ProtocolSICmdType.DIGITAL_SIGNATURE:
+                    case ProtocolSICmdType.DIGITAL_SIGNATURE:               //RECEÇÃO DA ASSINATURA DIGITAL
                         this.digitalSignature = protocolSI.GetData();                     
 
                         Console.WriteLine("Assinatura digital recebida no servidor: {0}", Convert.ToBase64String(digitalSignature));
@@ -128,8 +145,8 @@ namespace Server
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
                         break;
-                    case ProtocolSICmdType.USER_OPTION_1:
-                        
+                    case ProtocolSICmdType.USER_OPTION_1:                   //VALIDAÇÃO DO USERNAME ENVIADA VS ASSINATURA DIGITAL
+
                         if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                         {
 
@@ -146,7 +163,7 @@ namespace Server
                         networkStream.Flush();
                         break;
 
-                    case ProtocolSICmdType.USER_OPTION_2:
+                    case ProtocolSICmdType.USER_OPTION_2:                   //VALIDAÇÃO DA PASSWORD ENVIADA VS ASSINATURA DIGITAL
 
                         if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                         {
@@ -170,7 +187,7 @@ namespace Server
                         networkStream.Flush();
                         break;
 
-                    case ProtocolSICmdType.USER_OPTION_3:                   //PROCESSO LOGIN
+                    case ProtocolSICmdType.USER_OPTION_3:                   //RECEÇÃO DE UM PEDIDO DE LOGIN
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
@@ -185,13 +202,11 @@ namespace Server
                                     //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_SUCCESS);
                                     //networkStream.Write(packet, 0, packet.Length);
                                     client.isLogged = true;
-
-                                    //BroadLoggedUsers(ProtocolSICmdType.USER_OPTION_3, user.username, user, gameRoom);
+                                    //Broadcast dos utilizadores logados
                                 }
                                 else
                                 {
                                     Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
-
                                     //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_ERROR);
                                     //networkStream.Write(packet, 0, packet.Length);
                                 }
@@ -205,11 +220,9 @@ namespace Server
                         {
                             Console.WriteLine("Client_{0}: is already logged" + Environment.NewLine, client.ClientID);
                         }
-                       
-
                         break;
 
-                    case ProtocolSICmdType.USER_OPTION_4:
+                    case ProtocolSICmdType.USER_OPTION_4:                   //RECEÇÃO DE UM PEDIDO DE LOGIN      
                         //FAZ O REGISTO DE UM NOVO USER
                         if (!client.isLogged)
                         {
@@ -245,7 +258,68 @@ namespace Server
                         }
 
                         break;
-
+                    case ProtocolSICmdType.USER_OPTION_5:                   //RECEÇÃO DE START GAME
+                        if (client.isLogged)
+                        {
+                            if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
+                            {
+                                if(gameRoom.listUsers.Count > 1)
+                                {
+                                    switch (gameRoom.gameBoard.GetGameState())
+                                    {
+                                        case GameState.Standby:
+                                            gameRoom.gameBoard = new GameBoard();       //inserir lista jogadores
+                                            //1 - Broadcast do start game
+                                            //2 - Broadcast do jogador a jogar
+                                            break;
+                                        case GameState.OnGoing:
+                                            Console.WriteLine("Game already runnig!");
+                                            break;
+                                        case GameState.GameOver:
+                                            gameRoom.gameBoard = new GameBoard();       //Inserir lista jogadores
+                                            gameRoom.gameBoard.GameStart();
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Not possible start game, wait for another player!"); //Subtitur erros
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Assinatura diginal falhou no servidor."); //Subtitur erros
+                            }
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            networkStream.Write(packet, 0, packet.Length);
+                            networkStream.Flush();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client_{0}: is is not logged in!" + Environment.NewLine, client.ClientID);
+                        }
+                        break;
+                    case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE GAMEPLAY 
+                        if (client.isLogged)
+                        {
+                            switch (gameRoom.gameBoard.GetGameState())
+                            {
+                                case GameState.Standby:
+                                    Console.WriteLine("Game as not yeat started!");
+                                    break;
+                                case GameState.OnGoing:
+                                    //aceita jogada
+                                    break;
+                                case GameState.GameOver:
+                                    Console.WriteLine("Please restart game to play");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client_{0}: is is not logged in!" + Environment.NewLine, client.ClientID);
+                        }
+                        break;
                     case ProtocolSICmdType.PUBLIC_KEY:
                         //Recebe a public key do client
                         client.PublicKey = protocolSI.GetStringFromData();
