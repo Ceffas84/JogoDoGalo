@@ -185,8 +185,6 @@ namespace JogoDoGaloV1._0
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Data encryptada enviada do cliente: {0}", Encoding.UTF8.GetString(data));
-            //while (!Acknoledged) { }
-            //Acknoledged = false;
             Thread.Sleep(500);
 
             //Cria e envia a assinatura digital da menssagem
@@ -195,8 +193,6 @@ namespace JogoDoGaloV1._0
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Assinatura digital enviada do cliente: {0}", Convert.ToBase64String(digitalSignature));
-            //while (!Acknoledged) { }
-            //Acknoledged = false;
             Thread.Sleep(500);
 
             //Envia o Protocol de comando
@@ -204,8 +200,6 @@ namespace JogoDoGaloV1._0
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Comando enviado do cliente: {0}", protocolCmd);
-            //while (!Acknoledged) { }
-            //Acknoledged = false;
             Thread.Sleep(500);
 
         }
@@ -222,8 +216,6 @@ namespace JogoDoGaloV1._0
             networkStream.Write(eot, 0, eot.Length);
 
             //Aguarda confirmação da receção do username
-            while (!Acknoledged) { }
-            Acknoledged = false;
             Thread.Sleep(2000);
 
             networkStream.Close();
@@ -244,8 +236,7 @@ namespace JogoDoGaloV1._0
 
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
             networkStream.Write(packet, 0, packet.Length);
-            while (!Acknoledged) { }
-            Acknoledged = false;
+            Thread.Sleep(500);  //???
         }
 
         private void btnSignup_Click(object sender, EventArgs e)
@@ -256,8 +247,7 @@ namespace JogoDoGaloV1._0
 
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
             networkStream.Write(packet, 0, packet.Length);
-            while (!Acknoledged) { }
-            Acknoledged = false;
+            Thread.Sleep(500);
         }
     }
 }

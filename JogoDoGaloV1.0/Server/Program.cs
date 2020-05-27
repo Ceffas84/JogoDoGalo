@@ -148,11 +148,10 @@ namespace Server
 
                     case ProtocolSICmdType.USER_OPTION_2:
 
-                        string dg = Convert.ToBase64String(digitalSignature);
                         if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                         {
                             client.password = symDecipherData;
-                        
+
                             //Gera um slat e guarda-o no user
                             byte[] salt = new byte[8];
                             salt = tsCrypto.GenerateSalt();
@@ -164,7 +163,7 @@ namespace Server
                         }
                         else
                         {
-                            Console.WriteLine("Assinatura diginal falhou no servidor.");
+                            Console.WriteLine("Assinatura diginal falhou no servidor."); //Subtitur erros
                         }
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
@@ -172,28 +171,68 @@ namespace Server
                         break;
 
                     case ProtocolSICmdType.USER_OPTION_3:
+                        packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                        networkStream.Write(packet, 0, packet.Length);
+                        networkStream.Flush();
+
+                        if (!client.isLogged)
+                        {
+                            if (client.username.Length > 0 && client.saltedPasswordHash.Length > 0)
+                            {
+                                if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
+                                {
+                                    Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
+                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_SUCCESS);
+                                    //networkStream.Write(packet, 0, packet.Length);
+                                    client.isLogged = true;
+
+                                    //BroadLoggedUsers(ProtocolSICmdType.USER_OPTION_3, user.username, user, gameRoom);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
+
+                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_ERROR);
+                                    //networkStream.Write(packet, 0, packet.Length);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client_{0}: is already logged" + Environment.NewLine, client.ClientID);
+                        }
+                       
+
                         break;
 
                     case ProtocolSICmdType.USER_OPTION_4:
                         //FAZ O REGISTO DE UM NOVO USER
-                        //try
-                        //{
-                            Auth.Register(client.username, client.saltedPasswordHash, client.salt);
-                        //}
-                        //catch (Exception ex)
-                        //{
-                            //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
-                            //networkStream.Write(packet, 0, packet.Length);
-                           
-                            Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
+                        if (!client.isLogged)
+                        {
+                            try
+                            {
+                                Auth.Register(client.username, client.saltedPasswordHash, client.salt);
+                            }
+                            catch (Exception ex)
+                            {
+                                //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
+                                //networkStream.Write(packet, 0, packet.Length);
+
+                                Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
+                                packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                networkStream.Write(packet, 0, packet.Length);
+                                networkStream.Flush();
+                                break;
+                            }
+                            Console.WriteLine("Client_{0}: register successfull", client.ClientID);
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             networkStream.Write(packet, 0, packet.Length);
-                            networkStream.Flush();
-                        //break;
-                        ////}
-                        //Console.WriteLine("Client_{0}: register successfull", client.ClientID);
-                        //packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                        //networkStream.Write(packet, 0, packet.Length);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client_{0}: is already logged, please logout and then register a new user!" + Environment.NewLine, client.ClientID);
+                        }
+
                         break;
 
                     case ProtocolSICmdType.PUBLIC_KEY:
