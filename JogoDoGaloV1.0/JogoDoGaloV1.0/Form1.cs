@@ -107,9 +107,8 @@ namespace JogoDoGaloV1._0
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
-
-
                             break;
+
                         //******************   ABRETURA DE COMUNICAÇÃO ENCRIPTADA SIMÉTRICA   ******************
                         case ProtocolSICmdType.PUBLIC_KEY:
                             //Recebe a public key do client
@@ -140,10 +139,15 @@ namespace JogoDoGaloV1._0
 
                             SendAcknowledged(protocolSI, stream);
                             Invoke(new Action(() => { Console.WriteLine("Recebido IV: {0}", Convert.ToBase64String(decryptedIV)); }));
-                            
                             break;
+
                         case ProtocolSICmdType.ACK:
                             Acknoledged = true;
+                            break;
+
+                        case ProtocolSICmdType.USER_OPTION_9:
+                            int resultCode = protocolSI.GetIntFromData();
+                            Invoke(new Action(() => { checkServerResponse(resultCode); }));
                             break;
                     }
                 }
@@ -155,8 +159,47 @@ namespace JogoDoGaloV1._0
             tcpClient.Close();
             stream.Close();
         }
-       
-        
+
+        private void checkServerResponse(int resultCode)
+        {
+            switch (resultCode)
+            {
+                case 00:
+                    MessageBox.Show("Não foi possível fazer o seu registo.", "Erro de Registo");
+                    break;
+                case 01:
+                    MessageBox.Show("Login inválido.", "Erro de Login");
+                    break;
+                case 02:
+                    MessageBox.Show("Para jogar tem de estar logado.", "Erro de Login");
+                    break;
+                case 03:
+                    MessageBox.Show("Já está logado. Para fazer novo registo tem de fazer logout e registar um novo utilizador.", "Erro de Login");
+                    break;
+                case 04:
+                    MessageBox.Show("O username e a password têm de ter pelo menos 8 caractéres.", "Erro de introdução de dados");
+                    break;
+                case 10:
+                    MessageBox.Show("Registado com sucesso! Faça login para se juntar a uma sala de jogo.", "Sucesso de Registo");
+                    break;
+                case 11:
+                    MessageBox.Show("Logado com sucesso. Espere até que estejam dois jogadores na sala para começar o jogo.", "Sucesso de Login");
+                    break;
+                case 20:
+                    MessageBox.Show("O jogo ainda não começou! Espere que estejam duas pessoas na sala para começar o jogo.", "Erro de utilizador");
+                    break;
+                case 21:
+                    MessageBox.Show("O jogo já começou! Não é possível iniciar um novo jogo enquanto outro está em curso.", "Erro de utilizador");
+                    break;
+                case 22:
+                    MessageBox.Show("Jogada inválida. Jogue novamente.", "Erro de utilizador");
+                    break;
+                case 23:
+                    MessageBox.Show("Não é a sua vez de jogar. Espere que o seu adversário jogue.", "Erro de utilizador");
+                    break;
+            }
+        }
+
         public void SendAcknowledged(ProtocolSI protocolSI, NetworkStream networkStream)
         {
             byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);

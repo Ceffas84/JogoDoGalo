@@ -182,7 +182,7 @@ namespace Server
                                 if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
                                 {
                                     Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
-                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_SUCCESS);
+                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_SUCCESS);
                                     //networkStream.Write(packet, 0, packet.Length);
                                     client.isLogged = true;
 

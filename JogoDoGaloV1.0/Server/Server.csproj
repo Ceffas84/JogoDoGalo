@@ -67,6 +67,7 @@
     <Compile Include="Models\GamePlayer.cs" />
     <Compile Include="Models\GameRoom.cs" />
     <Compile Include="Models\GameState.cs" />
+    <Compile Include="Models\ServerResponse.cs" />
     <Compile Include="Models\TSProtocol.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\TSCryptography.cs" />
