@@ -18,7 +18,7 @@ namespace Server.Models
         private GameState gameState;
         public GameBoard()
         {
-
+            this.gameState = GameState.Standby;
         }
         public GameBoard(int boardDimension, List<GamePlayer> gamePlayersList)
         {
@@ -29,6 +29,7 @@ namespace Server.Models
             PlayCounter = 0;
             PlayersList = gamePlayersList;
             GameTurn = PlayersList[0];
+            this.gameState = GameState.Standby;
         }
         public void AddGamePLay(int coord_x, int coord_y)
         {
