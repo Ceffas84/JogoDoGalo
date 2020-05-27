@@ -13,6 +13,7 @@ namespace Server.Models
         NOT_LOGGED = 02,
         ALREADY_LOGGED = 03,
         USERNAME_OR_PASSWORD_INVALID_LENGTH = 04,
+        INVALID_DIGITAL_SIGNATURE = 05,
         
         REGISTER_SUCCESS = 10,
         LOGIN_SUCCESS = 11,
@@ -20,6 +21,6 @@ namespace Server.Models
         GAME_NOT_YET_STARTED = 20,
         GAME_ALREADY_RUNNUNG = 21, 
         INVALID_MOVE = 22,
-        NOT_YOUR_TURN = 23,
+        NOT_YOUR_TURN = 23
     }
 }

@@ -151,13 +151,15 @@ namespace Server
                         {
 
                             client.username = Encoding.UTF8.GetString(symDecipherData);
-                            Console.WriteLine(client.username);
+                            //Console.WriteLine(client.username);
                         }
                         else
                         {
                             Console.WriteLine("Assinatura diginal falhou no servidor.");
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.INVALID_DIGITAL_SIGNATURE);
+                            networkStream.Write(packet, 0, packet.Length);
                         }
-                        
+
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
@@ -181,6 +183,8 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Assinatura diginal falhou no servidor."); //Subtitur erros
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.INVALID_DIGITAL_SIGNATURE);
+                            networkStream.Write(packet, 0, packet.Length);
                         }
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
@@ -199,26 +203,30 @@ namespace Server
                                 if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
                                 {
                                     Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
-                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_SUCCESS);
-                                    //networkStream.Write(packet, 0, packet.Length);
+                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_SUCCESS);
+                                    networkStream.Write(packet, 0, packet.Length);
                                     client.isLogged = true;
                                     //Broadcast dos utilizadores logados
                                 }
                                 else
                                 {
                                     Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
-                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.LOGIN_ERROR);
-                                    //networkStream.Write(packet, 0, packet.Length);
+                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_ERROR);
+                                    networkStream.Write(packet, 0, packet.Length);
                                 }
                             }
                             else
                             {
                                 Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH);
+                                networkStream.Write(packet, 0, packet.Length);
                             }
                         }
                         else
                         {
                             Console.WriteLine("Client_{0}: is already logged" + Environment.NewLine, client.ClientID);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.ALREADY_LOGGED);
+                            networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
 
@@ -234,27 +242,32 @@ namespace Server
                                 }
                                 catch (Exception ex)
                                 {
-                                    //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
-                                    //networkStream.Write(packet, 0, packet.Length);
+                                    
 
                                     Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
-                                    packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.REGISTER_ERROR);
                                     networkStream.Write(packet, 0, packet.Length);
                                     networkStream.Flush();
                                     break;
                                 }
                                 Console.WriteLine("Client_{0}: register successfull", client.ClientID);
-                                packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.REGISTER_SUCCESS);
                                 networkStream.Write(packet, 0, packet.Length);
+                                //packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                //networkStream.Write(packet, 0, packet.Length);
                             }
                             else
                             {
                                 Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH);
+                                networkStream.Write(packet, 0, packet.Length);
                             }
                         }
                         else
                         {
                             Console.WriteLine("Client_{0}: is already logged, please logout and then register a new user!" + Environment.NewLine, client.ClientID);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.ALREADY_LOGGED);
+                            networkStream.Write(packet, 0, packet.Length);
                         }
 
                         break;
@@ -263,7 +276,7 @@ namespace Server
                         {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {
-                                if(gameRoom.listUsers.Count > 1)
+                                if(gameRoom.listUsers.Count > 1) //---> Esta comparação devia ser o count == 2
                                 {
                                     switch (gameRoom.gameBoard.GetGameState())
                                     {
@@ -274,6 +287,8 @@ namespace Server
                                             break;
                                         case GameState.OnGoing:
                                             Console.WriteLine("Game already runnig!");
+                                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.GAME_ALREADY_RUNNUNG);
+                                            networkStream.Write(packet, 0, packet.Length);
                                             break;
                                         case GameState.GameOver:
                                             gameRoom.gameBoard = new GameBoard();       //Inserir lista jogadores
@@ -284,28 +299,36 @@ namespace Server
                                 else
                                 {
                                     Console.WriteLine("Not possible start game, wait for another player!"); //Subtitur erros
+                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.GAME_NOT_YET_STARTED);
+                                    networkStream.Write(packet, 0, packet.Length);
                                 }
                             }
                             else
                             {
                                 Console.WriteLine("Assinatura diginal falhou no servidor."); //Subtitur erros
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.INVALID_DIGITAL_SIGNATURE);
+                                networkStream.Write(packet, 0, packet.Length);
                             }
-                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(packet, 0, packet.Length);
-                            networkStream.Flush();
+                            //packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            //networkStream.Write(packet, 0, packet.Length);
+                            //networkStream.Flush();
                         }
                         else
                         {
-                            Console.WriteLine("Client_{0}: is is not logged in!" + Environment.NewLine, client.ClientID);
+                            Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
-                    case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE GAMEPLAY 
+                    case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE JOGADA 
                         if (client.isLogged)
                         {
                             switch (gameRoom.gameBoard.GetGameState())
                             {
                                 case GameState.Standby:
                                     Console.WriteLine("Game as not yeat started!");
+                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.GAME_NOT_YET_STARTED);
+                                    networkStream.Write(packet, 0, packet.Length);
                                     break;
                                 case GameState.OnGoing:
                                     //aceita jogada
@@ -317,7 +340,9 @@ namespace Server
                         }
                         else
                         {
-                            Console.WriteLine("Client_{0}: is is not logged in!" + Environment.NewLine, client.ClientID);
+                            Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
                     case ProtocolSICmdType.PUBLIC_KEY:
