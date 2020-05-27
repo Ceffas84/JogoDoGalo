@@ -82,7 +82,7 @@ namespace JogoDoGaloV1._0
                             decryptedData = tsCrypto.SymetricDecryption(encryptedData);
                             this.symDecipherData = decryptedData;
                             
-                            Invoke(new Action(() => { Console.WriteLine("Recebido o SymCipherData: {0}", Encoding.UTF8.GetString(this.symDecipherData)); }));
+                            Invoke(new Action(() => { Console.WriteLine("SymCipherData recebida no cliente: {0}", Encoding.UTF8.GetString(this.symDecipherData)); }));
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
@@ -90,7 +90,7 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.DIGITAL_SIGNATURE:
                             this.digitalSignature = protocolSI.GetData();
 
-                            Invoke(new Action(() => { Console.WriteLine("Assinatura digital recebida: {0}", Convert.ToBase64String(this.digitalSignature)); }));
+                            Invoke(new Action(() => { Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature)); }));
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
@@ -102,7 +102,7 @@ namespace JogoDoGaloV1._0
                                 packet = protocolSI.Make(ProtocolSICmdType.ACK);
                                 stream.Write(packet, 0, packet.Length);
 
-                                Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada"); }));
+                                Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada no cliente"); }));
                             }
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
@@ -183,22 +183,31 @@ namespace JogoDoGaloV1._0
             byte[] encryptedData = tsCrypto.SymetricEncryption(data);
             byte[] packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
-            while (!Acknoledged) { }
-            Acknoledged = false;
-
+            networkStream.Flush();
+            Console.WriteLine("Data encryptada enviada do cliente: {0}", Encoding.UTF8.GetString(data));
+            //while (!Acknoledged) { }
+            //Acknoledged = false;
+            Thread.Sleep(500);
 
             //Cria e envia a assinatura digital da menssagem
             byte[] digitalSignature = tsCrypto.SignData(data, privateKey);
             packet = protocolSI.Make(ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
             networkStream.Write(packet, 0, packet.Length);
-            while (!Acknoledged) { }
-            Acknoledged = false;
+            networkStream.Flush();
+            Console.WriteLine("Assinatura digital enviada do cliente: {0}", Convert.ToBase64String(digitalSignature));
+            //while (!Acknoledged) { }
+            //Acknoledged = false;
+            Thread.Sleep(500);
 
             //Envia o Protocol de comando
             packet = protocolSI.Make(protocolCmd);
             networkStream.Write(packet, 0, packet.Length);
-            while (!Acknoledged) { }
-            Acknoledged = false;
+            networkStream.Flush();
+            Console.WriteLine("Comando enviado do cliente: {0}", protocolCmd);
+            //while (!Acknoledged) { }
+            //Acknoledged = false;
+            Thread.Sleep(500);
+
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)

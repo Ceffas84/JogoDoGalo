@@ -82,12 +82,15 @@ namespace Server
             //ServerPublicKey = serverPublicKey;
             //ServerPrivateKey = serverPrivateKey;
             Thread thread = new Thread(ClientListener);
-            thread.Start(this.gameRoom.listUsers[gameRoom.listUsers.Count - 1]);
+            //thread.Start(this.gameRoom.listUsers[gameRoom.listUsers.Count - 1]);
+            thread.Start(this.gameRoom);
         }
         public void ClientListener(object obj)
         {
             //Recebemos o user que efetuou ligação no servidor
-            Client client = (Client)obj;
+            GameRoom gameRoomThread = (GameRoom)obj;
+            Client client = gameRoom.listUsers[gameRoom.listUsers.Count-1];
+
             //user.PrivateKey = tsCrypto.GetPrivateKey();
 
             //Atribuimos as credencias de criptografia simétrica ao utilizador
@@ -107,19 +110,23 @@ namespace Server
                         decryptedData = tsCrypto.SymetricDecryption(encryptedData);
                         this.symDecipherData = decryptedData;
 
+
+
+                        Console.WriteLine("SymCipherData recebida no servidor: {0}", Encoding.UTF8.GetString(this.symDecipherData));
+
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
+                        networkStream.Flush();
 
-                        Console.WriteLine("Recebido o SymCipherData: {0}", Encoding.UTF8.GetString(this.symDecipherData));
                         break;
                     case ProtocolSICmdType.DIGITAL_SIGNATURE:
-                        this.digitalSignature = protocolSI.GetData();
+                        this.digitalSignature = protocolSI.GetData();                     
+
+                        Console.WriteLine("Assinatura digital recebida no servidor: {0}", Convert.ToBase64String(digitalSignature));
 
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
-
-
-                        Console.WriteLine("Assinatura digital recebeida: {0}", Convert.ToBase64String(digitalSignature));
+                        networkStream.Flush();
                         break;
                     case ProtocolSICmdType.USER_OPTION_1:
                         
@@ -131,15 +138,17 @@ namespace Server
                         }
                         else
                         {
-                            Console.WriteLine("Assinatura diginal falhou.");
+                            Console.WriteLine("Assinatura diginal falhou no servidor.");
                         }
                         
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
+                        networkStream.Flush();
                         break;
 
                     case ProtocolSICmdType.USER_OPTION_2:
-                        
+
+                        string dg = Convert.ToBase64String(digitalSignature);
                         if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                         {
                             client.password = symDecipherData;
@@ -155,10 +164,11 @@ namespace Server
                         }
                         else
                         {
-                            Console.WriteLine("Assinatura diginal falhou.");
+                            Console.WriteLine("Assinatura diginal falhou no servidor.");
                         }
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
+                        networkStream.Flush();
                         break;
 
                     case ProtocolSICmdType.USER_OPTION_3:
@@ -166,22 +176,24 @@ namespace Server
 
                     case ProtocolSICmdType.USER_OPTION_4:
                         //FAZ O REGISTO DE UM NOVO USER
-                        try
-                        {
+                        //try
+                        //{
                             Auth.Register(client.username, client.saltedPasswordHash, client.salt);
-                        }
-                        catch (Exception ex)
-                        {
+                        //}
+                        //catch (Exception ex)
+                        //{
                             //packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_1, (int)ServerResponse.REGISTER_ERROR);
                             //networkStream.Write(packet, 0, packet.Length);
+                           
                             Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             networkStream.Write(packet, 0, packet.Length);
-                            break;
-                        }
-                        Console.WriteLine("Client_{0}: register successfull", client.ClientID);
-                        packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                        networkStream.Write(packet, 0, packet.Length);
+                            networkStream.Flush();
+                        //break;
+                        ////}
+                        //Console.WriteLine("Client_{0}: register successfull", client.ClientID);
+                        //packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                        //networkStream.Write(packet, 0, packet.Length);
                         break;
 
                     case ProtocolSICmdType.PUBLIC_KEY:
@@ -191,6 +203,7 @@ namespace Server
                         //Envia um acknoledged
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
+                        networkStream.Flush();
 
                         //Envia a public key
                         packet = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, Program.SERVERPUBLICKEY);
@@ -207,6 +220,8 @@ namespace Server
                         byte[] encryptedKey = tsCrypto.RsaEncryption(tsCrypto.GetSymKey(), client.PublicKey);
                         encryptedData = protocolSI.Make(ProtocolSICmdType.SECRET_KEY, encryptedKey);
                         networkStream.Write(encryptedData, 0, encryptedData.Length);
+                        networkStream.Flush();
+
                         while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
                         {
                             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -217,6 +232,7 @@ namespace Server
                         byte[] encryptedIV = tsCrypto.RsaEncryption(tsCrypto.GetIV(), client.PublicKey);
                         encryptedData = protocolSI.Make(ProtocolSICmdType.IV, encryptedIV);
                         networkStream.Write(encryptedData, 0, encryptedData.Length);
+                        networkStream.Flush();
                         while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
                         {
                             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -246,6 +262,8 @@ namespace Server
             encryptedData = tsCrypto.SymetricEncryption(data);
             packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
+            networkStream.Flush();
+
             while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
             {
                 networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -255,6 +273,8 @@ namespace Server
             digitalSignature = tsCrypto.SignData(data, Program.SERVERPRIVATEKEY);
             packet = protocolSI.Make(ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
             networkStream.Write(packet, 0, packet.Length);
+            networkStream.Flush();
+
             while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
             {
                 networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -263,6 +283,8 @@ namespace Server
             //Envia o Protocol de comando
             packet = protocolSI.Make(cmdType);
             networkStream.Write(packet, 0, packet.Length);
+            networkStream.Flush();
+
             while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
             {
                 networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -278,16 +300,20 @@ namespace Server
             encryptedData = crypto.SymetricEncryption(data);
             packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
             stream.Write(packet, 0, packet.Length);
-           
+            stream.Flush();
+
             //Cria e envia a assinatura digital da menssagem
             digitalSignature = crypto.SignData(data, Program.SERVERPRIVATEKEY);
             packet = protocolSI.Make(ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
             stream.Write(packet, 0, packet.Length);
-            
+            stream.Flush();
+
+
             //Envia o Protocol de comando
             packet = protocolSI.Make(cmdType);
             stream.Write(packet, 0, packet.Length);
-            
+            stream.Flush();
+
             //Envia o Protocol de comando
             Console.WriteLine("Assinatura digital confirmada");
         }

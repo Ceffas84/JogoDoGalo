@@ -10,8 +10,9 @@ namespace Server.Models
     public class Authentication
     {
         TSCryptography tsCrypto;
-        private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
-        //private string FULLPATH = @"C:\Users\ricgl\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf";
+        //private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGaloV1.0\JogoDoGalo_Server\GaloDB.mdf";
+        private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
+                                    
         public Authentication()
         {
             tsCrypto = new TSCryptography();
@@ -67,6 +68,9 @@ namespace Server.Models
                 conn.Close();
 
                 byte[] hash = tsCrypto.GenerateSaltedHash(password, saltStored);
+
+                //falta código
+
 
                 return saltedPasswordHashStored.SequenceEqual(hash);
             }
