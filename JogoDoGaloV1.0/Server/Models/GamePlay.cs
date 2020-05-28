@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Server.Models
 {
+    [Serializable]
     public class GamePlay
     {
         public int Coord_x;
