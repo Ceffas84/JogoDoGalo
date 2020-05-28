@@ -17,6 +17,8 @@ namespace JogoDoGaloV1._0
 {
     public partial class Form1 : Form
     {
+        private const int BREAK = 100; 
+
         private TcpClient tcpClient;
         private IPEndPoint ipEndPoint;
         private NetworkStream networkStream;
@@ -228,7 +230,7 @@ namespace JogoDoGaloV1._0
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Data encryptada enviada do cliente: {0}", Encoding.UTF8.GetString(data));
-            Thread.Sleep(500);
+            Thread.Sleep(BREAK);
 
             //Cria e envia a assinatura digital da menssagem
             byte[] digitalSignature = tsCrypto.SignData(data, privateKey);
@@ -236,14 +238,14 @@ namespace JogoDoGaloV1._0
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Assinatura digital enviada do cliente: {0}", Convert.ToBase64String(digitalSignature));
-            Thread.Sleep(500);
+            Thread.Sleep(BREAK);
 
             //Envia o Protocol de comando
             packet = protocolSI.Make(protocolCmd);
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Comando enviado do cliente: {0}", protocolCmd);
-            Thread.Sleep(500);
+            Thread.Sleep(BREAK);
 
         }
 
@@ -279,7 +281,7 @@ namespace JogoDoGaloV1._0
 
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
             networkStream.Write(packet, 0, packet.Length);
-            Thread.Sleep(500);  //???
+            Thread.Sleep(BREAK);  //???
         }
 
         private void btnSignup_Click(object sender, EventArgs e)
@@ -290,7 +292,7 @@ namespace JogoDoGaloV1._0
 
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
             networkStream.Write(packet, 0, packet.Length);
-            Thread.Sleep(500);
+            Thread.Sleep(BREAK);
         }
     }
 }
