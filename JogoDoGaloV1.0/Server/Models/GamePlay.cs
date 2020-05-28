@@ -10,8 +10,8 @@ namespace Server.Models
     {
         public int Coord_x;
         public int Coord_y;
-        public GamePlayer Player;
-        public GamePlay(int coord_x, int coord_y, GamePlayer player)
+        public Client Player;
+        public GamePlay(int coord_x, int coord_y, Client player)
         {
             Coord_x = coord_x;
             Coord_y = coord_y;

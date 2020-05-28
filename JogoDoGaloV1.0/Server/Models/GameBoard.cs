@@ -8,13 +8,12 @@ namespace Server.Models
 {
     public class GameBoard
     {
+        public static char[] Symbol = new char[5] { 'X', 'O', '?', '»', 'T' };
         private int BoardDimension;
         private int SequenceSize;
         private int MaxNumberPlay;
         private List<GamePlay> PlayList;
         private int PlayCounter;
-        private List<GamePlayer> PlayersList;
-        private GamePlayer GameTurn;
         private GameState gameState;
         public GameBoard()
         {
@@ -27,18 +26,20 @@ namespace Server.Models
             MaxNumberPlay = SequenceSize * SequenceSize;
             PlayList = new List<GamePlay>();
             PlayCounter = 0;
-            PlayersList = gamePlayersList;
-            GameTurn = PlayersList[0];
-            this.gameState = GameState.Standby;
+            this.gameState = GameState.OnGoing;
         }
-        public void AddGamePLay(int coord_x, int coord_y)
+        public void AddGamePlay(GamePlay gamePlay)
         {
-            GamePlay gamePlay = new GamePlay(coord_x, coord_y, GameTurn);
             PlayList.Add(gamePlay);
-            GameTurn.IncNumberGamePLay();
+        }
+        public void AddGamePlay(int coord_x, int coord_y, Client player)
+        {
+            GamePlay gamePlay = new GamePlay(coord_x, coord_y, player);
+            PlayList.Add(gamePlay);
             PlayCounter++;
         }
-        public bool CheckPLayerWins(GamePlayer player)
+        
+        public bool CheckPLayerWins(Client player)
         {
             for (int offset_row = 0; offset_row <= BoardDimension - SequenceSize; offset_row++)
             {
@@ -56,12 +57,12 @@ namespace Server.Models
                         {
                             GamePlay newGamePLay = new GamePlay(I, J, player);
                             //conta as marcaçoes das linhas
-                            if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.PlayerId == player.PlayerId)
+                            if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.playerID == player.playerID)
                             {
                                 contarLinha++;
                             }
                             //conta as marcaçoes das colunas
-                            if (GamePlayExist(J, I) && PlayList[PlayId(J, I)].Player.PlayerId == player.PlayerId)
+                            if (GamePlayExist(J, I) && PlayList[PlayId(J, I)].Player.playerID == player.playerID)
                             {
                                 contarColuna++;
 
@@ -69,7 +70,7 @@ namespace Server.Models
                             //conta as marcações das diagonal direita
                             if (I - offset_row == J - offset_row)
                             {
-                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.PlayerId == player.PlayerId)
+                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.playerID == player.playerID)
                                 {
                                     contarDiagonalDrt++;
                                 }
@@ -77,7 +78,7 @@ namespace Server.Models
                             //conta as marcacoes da diagonal esquerda
                             if (J - offset_col == SequenceSize + offset_row - I - 1)
                             {
-                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.PlayerId == player.PlayerId)
+                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.playerID == player.playerID)
                                 {
                                     contarDiagonalEsq++;
                                 }
@@ -152,29 +153,30 @@ namespace Server.Models
             }
             return sequenceSize;
         }
-        public GamePlayer PlayerTurn()
-        {
-            return GameTurn;
-        }
         public void GameStart()
         {
+            this.gameState = GameState.OnGoing;
+        }
+        public void RestartGame()
+        {
+            this.PlayCounter = 0;
             this.gameState = GameState.OnGoing;
         }
         public GameState GetGameState()
         {
             return this.gameState;
         }
-        public void UpdateGameState(GameState newState)
+        public void SetGameState(GameState newState)
         {
             this.gameState = newState;
         }
-        public bool isPlayerTurn(int idGamePlayer)
+        public int GetBoardDimension()
         {
-            if (idGamePlayer == this.GameTurn.PlayerId)
-            {
-                return true;
-            }
-            return false;
+            return this.BoardDimension;
+        }
+        public List<GamePlay> GetPlayList()
+        {
+            return this.PlayList;
         }
     }
 }
