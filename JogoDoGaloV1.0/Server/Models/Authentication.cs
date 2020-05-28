@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -10,8 +10,8 @@ namespace Server.Models
     public class Authentication
     {
         TSCryptography tsCrypto;
-        private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
-        //private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
+        //private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
+        private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
                                     
         public Authentication()
         {
@@ -129,6 +129,61 @@ namespace Server.Models
             catch (Exception e)
             {
                 throw new Exception("Error while inserting an user:" + e.Message);
+            }
+        }
+        public int LoggedUserId(string username)
+        {
+            SqlConnection conn = null;
+            try
+            {
+                // Configurar ligação à Base de Dados
+                conn = new SqlConnection();
+
+                conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
+
+                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf';Integrated Security=True");
+
+                // Abrir ligação à Base de Dados
+                conn.Open();
+
+                // Declaração do comando SQL
+                String sql = "SELECT Id FROM Users WHERE Username = @username";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = sql;
+
+                // Declaração dos parâmetros do comando SQL
+                SqlParameter param = new SqlParameter("@username", username);
+
+                // Introduzir valor ao parâmentro registado no comando SQL
+                cmd.Parameters.Add(param);
+
+                // Associar ligação à Base de Dados ao comando a ser executado
+                cmd.Connection = conn;
+
+                // Executar comando SQL
+                SqlDataReader reader = cmd.ExecuteReader();
+
+
+                if (!reader.HasRows)
+                {
+                    //throw new Exception("Error while trying to access an user");
+                    return 0;
+                }
+
+                // Ler resultado da pesquisa
+                reader.Read();
+
+                // Obter o Id
+                int id = (int)reader["Id"];
+
+                conn.Close();
+
+                return id;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("An error occurred: " + e.Message);
+                return 0;
             }
         }
     }
