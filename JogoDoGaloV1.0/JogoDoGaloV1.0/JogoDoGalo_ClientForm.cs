@@ -17,7 +17,7 @@ namespace JogoDoGaloV1._0
 {
     public partial class JogoDoGalo_ClientForm : Form
     {
-        private const int BREAK = 100; 
+        private const int BREAK = 500; 
 
         private TcpClient tcpClient;
         private IPEndPoint ipEndPoint;
@@ -38,6 +38,9 @@ namespace JogoDoGaloV1._0
         private byte[] decryptedData;
         private byte[] packet;
 
+        private delegate void SafeCallDelegate(string text);
+        string msgRecebida;
+
         private Thread thread;
 
         private bool Acknoledged = false;
@@ -54,9 +57,8 @@ namespace JogoDoGaloV1._0
             
             tsCrypto = new TSCryptography();
             protocolSI = new ProtocolSI();
-            tsProtocol = new TSProtocol(networkStream);
 
-            thread = new Thread(ServerLisneter);
+            thread = new Thread(ServerListener);
             thread.Name = "ServerLisneter";
             thread.Start(tcpClient);
 
@@ -65,12 +67,13 @@ namespace JogoDoGaloV1._0
 
             byte[] packet = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
             networkStream.Write(packet, 0, packet.Length);
+
+
         }
-        private void ServerLisneter(object obj)
+        private void ServerListener(object obj)
         {
             TcpClient tcpClient = (TcpClient)obj;
             NetworkStream stream = tcpClient.GetStream();
-            TSProtocol tsProtocol = new TSProtocol(stream);
 
             //  **** TABELA DE UTILIZAÇÃO DE COMANDOS DO PROTOCOLSI ****
             //
@@ -94,7 +97,7 @@ namespace JogoDoGaloV1._0
             {
                 try
                 {
-                    stream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+                    stream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);        
                     switch (protocolSI.GetCmdType())
                     {
                         case ProtocolSICmdType.SYM_CIPHER_DATA:
@@ -102,7 +105,10 @@ namespace JogoDoGaloV1._0
                             decryptedData = tsCrypto.SymetricDecryption(encryptedData);
                             this.symDecipherData = decryptedData;
                             
-                            Invoke(new Action(() => { Console.WriteLine("SymCipherData recebida no cliente: {0}", Encoding.UTF8.GetString(this.symDecipherData)); }));
+                            //Invoke(new Action(() => { Console.WriteLine("SymCipherData recebida no cliente: {0}", Encoding.UTF8.GetString(this.symDecipherData)); }));
+
+
+
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
@@ -167,9 +173,11 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.USER_OPTION_8:
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
-                                string msgRecebida = Encoding.UTF8.GetString(symDecipherData);
+                                msgRecebida = Encoding.UTF8.GetString(symDecipherData);
 
-                                Invoke(new Action(() => { rtbMensagens.AppendText(msgRecebida + Environment.NewLine); }));
+                                //Invoke(new Action(() => { rtbMensagens.AppendText(msgRecebida + Environment.NewLine); }));
+                                var d = new SafeCallDelegate((texto) => { rtbMensagens.AppendText(texto); });
+                                rtbMensagens.Invoke(d, new object[] { msgRecebida });
 
                                 packet = protocolSI.Make(ProtocolSICmdType.ACK);
                                 stream.Write(packet, 0, packet.Length);
@@ -181,9 +189,9 @@ namespace JogoDoGaloV1._0
                             break;
                     }
                 }
-                catch
+                catch(Exception ex)
                 {
-
+                    Console.WriteLine(ex.Message);
                 }
             }
             tcpClient.Close();

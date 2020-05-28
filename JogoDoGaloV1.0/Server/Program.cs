@@ -462,7 +462,7 @@ namespace Server
                         }
                         break;
                     case ProtocolSICmdType.USER_OPTION_8:
-                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
+                        if (lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                         {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {

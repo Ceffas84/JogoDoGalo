@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Server.Models
 {
+    [Serializable]
     public class GamePlayer
     {
         public int PlayerId { get; }
