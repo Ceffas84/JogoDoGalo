@@ -72,6 +72,24 @@ namespace JogoDoGaloV1._0
             NetworkStream stream = tcpClient.GetStream();
             TSProtocol tsProtocol = new TSProtocol(stream);
 
+            //  **** TABELA DE UTILIZAÇÃO DE COMANDOS DO PROTOCOLSI ****
+            //
+            //  SYM_CIPHER_DATA       => Receção de menssagem encriptada
+            //  DIGITAL_SIGNATURE     => Receção de assinatura digital da mensagem enviada
+            //
+            //  PUBLIC_KEY            => Receção da PublicKey do servidor
+            //  SECRET_KEY            => Receção da SecretKey
+            //  IV                    => Receção do vetor de inicialização
+            //
+            //  USER_OPTION_1         => Receção do Start Game
+            //  USER_OPTION_2         => Receção do Próximo jogador
+            //  USER_OPTION_3         => Receção de Jogadas
+            //  USER_OPTION_4         => Receção de Game Over
+            //  USER_OPTION_5         => Receção de Jogadores Logados
+            //  USER_OPTION_6         =>
+            //  USER_OPTION_7         =>
+            //  USER_OPTION_8         => Receção de mensagens no chat
+            //  USER_OPTION_9         => Receção de mensagens de Erro ou Sucesso
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 try
@@ -221,7 +239,7 @@ namespace JogoDoGaloV1._0
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)  //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
             byte[] decryptedData = Encoding.UTF8.GetBytes(tbChat.Text);
 
@@ -273,7 +291,7 @@ namespace JogoDoGaloV1._0
             tcpClient.Close();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e) //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
             Form1 newcliente = new Form1();
             newcliente.Show();
@@ -299,6 +317,14 @@ namespace JogoDoGaloV1._0
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
             networkStream.Write(packet, 0, packet.Length);
             Thread.Sleep(BREAK);
+        }
+
+        private void bt_EnviaMensagem_Click(object sender, EventArgs e)
+        {
+            byte[] decryptedData = Encoding.UTF8.GetBytes(tbEscreverMensagem.Text);
+
+            //Envia a mensagem encriptada, a assinatura digital e o Protocol a usar para lidar com a informação recebida
+            EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_8);
         }
     }
 }

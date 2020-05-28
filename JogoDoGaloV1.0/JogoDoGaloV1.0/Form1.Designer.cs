@@ -41,7 +41,7 @@
             this.tbPassword = new System.Windows.Forms.TextBox();
             this.gBoxChat = new System.Windows.Forms.GroupBox();
             this.rtbMensagens = new System.Windows.Forms.RichTextBox();
-            this.tb_EscreveMensagem = new System.Windows.Forms.TextBox();
+            this.tbEscreverMensagem = new System.Windows.Forms.TextBox();
             this.bt_EnviaMensagem = new System.Windows.Forms.Button();
             this.tbChat = new System.Windows.Forms.TextBox();
             this.tbServer = new System.Windows.Forms.TextBox();
@@ -173,7 +173,7 @@
             // gBoxChat
             // 
             this.gBoxChat.Controls.Add(this.rtbMensagens);
-            this.gBoxChat.Controls.Add(this.tb_EscreveMensagem);
+            this.gBoxChat.Controls.Add(this.tbEscreverMensagem);
             this.gBoxChat.Controls.Add(this.bt_EnviaMensagem);
             this.gBoxChat.Location = new System.Drawing.Point(600, 175);
             this.gBoxChat.Name = "gBoxChat";
@@ -192,14 +192,14 @@
             this.rtbMensagens.TabIndex = 35;
             this.rtbMensagens.Text = "";
             // 
-            // tb_EscreveMensagem
+            // tbEscreverMensagem
             // 
-            this.tb_EscreveMensagem.Location = new System.Drawing.Point(8, 368);
-            this.tb_EscreveMensagem.Margin = new System.Windows.Forms.Padding(2);
-            this.tb_EscreveMensagem.Multiline = true;
-            this.tb_EscreveMensagem.Name = "tb_EscreveMensagem";
-            this.tb_EscreveMensagem.Size = new System.Drawing.Size(236, 37);
-            this.tb_EscreveMensagem.TabIndex = 27;
+            this.tbEscreverMensagem.Location = new System.Drawing.Point(8, 368);
+            this.tbEscreverMensagem.Margin = new System.Windows.Forms.Padding(2);
+            this.tbEscreverMensagem.Multiline = true;
+            this.tbEscreverMensagem.Name = "tbEscreverMensagem";
+            this.tbEscreverMensagem.Size = new System.Drawing.Size(236, 37);
+            this.tbEscreverMensagem.TabIndex = 27;
             // 
             // bt_EnviaMensagem
             // 
@@ -210,6 +210,7 @@
             this.bt_EnviaMensagem.TabIndex = 28;
             this.bt_EnviaMensagem.Text = "Enviar Mensagem";
             this.bt_EnviaMensagem.UseVisualStyleBackColor = true;
+            this.bt_EnviaMensagem.Click += new System.EventHandler(this.bt_EnviaMensagem_Click);
             // 
             // tbChat
             // 
@@ -319,7 +320,7 @@
         private System.Windows.Forms.TextBox tbPassword;
         private System.Windows.Forms.GroupBox gBoxChat;
         private System.Windows.Forms.RichTextBox rtbMensagens;
-        private System.Windows.Forms.TextBox tb_EscreveMensagem;
+        private System.Windows.Forms.TextBox tbEscreverMensagem;
         private System.Windows.Forms.Button bt_EnviaMensagem;
         private System.Windows.Forms.TextBox tbChat;
         private System.Windows.Forms.TextBox tbServer;

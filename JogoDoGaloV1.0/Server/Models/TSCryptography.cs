@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,7 +14,8 @@ namespace Server.Models
     {
         private const int SALTSIZE = 8;
         private const int NUMBER_OF_ITERATIONS = 1000;
-        private const string SECRET = "alma da %casa";
+        private const int SECRET_SIZE = 8;
+        private string SECRET = GenerateRandomSecretString(SECRET_SIZE);
         private AesCryptoServiceProvider Aes;
         private RSACryptoServiceProvider Rsa;
         //
@@ -39,6 +41,25 @@ namespace Server.Models
             Aes.Key = key;
             Rsa = new RSACryptoServiceProvider();
         }
+
+        private static string GenerateRandomSecretString(int size)
+        {
+            StringBuilder builder = new StringBuilder();
+            Random random = new Random();
+            char ch;
+            for (int i = 0; i < size; i++)
+            {
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(90 * random.NextDouble() + 33)));
+                if(ch == '"' || ch == '\\' || ch == '`' || ch == '.' || ch == ',' || ch == '´' || ch == '\'')
+                {
+                    i = i - 1;
+                    continue;
+                }
+                builder.Append(ch);
+            }
+            return builder.ToString();
+        }
+
         //
         //Summary:
         //      Função que gera um Vetor de Inicialização para utilizar no objeto AES
