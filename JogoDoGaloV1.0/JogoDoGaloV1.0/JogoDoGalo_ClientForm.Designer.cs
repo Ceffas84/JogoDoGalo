@@ -1,6 +1,6 @@
 ﻿namespace JogoDoGaloV1._0
 {
-    partial class Form1
+    partial class JogoDoGalo_ClientForm
     {
         /// <summary>
         /// Required designer variable.

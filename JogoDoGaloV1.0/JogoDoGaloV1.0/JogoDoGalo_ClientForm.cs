@@ -15,7 +15,7 @@ using System.Windows.Forms;
 
 namespace JogoDoGaloV1._0
 {
-    public partial class Form1 : Form
+    public partial class JogoDoGalo_ClientForm : Form
     {
         private const int BREAK = 100; 
 
@@ -41,7 +41,7 @@ namespace JogoDoGaloV1._0
         private Thread thread;
 
         private bool Acknoledged = false;
-        public Form1()
+        public JogoDoGalo_ClientForm()
         {
             InitializeComponent();
 
@@ -164,7 +164,17 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.ACK:
                             Acknoledged = true;
                             break;
+                        case ProtocolSICmdType.USER_OPTION_8:
+                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
+                            {
+                                string msgRecebida = Encoding.UTF8.GetString(symDecipherData);
 
+                                Invoke(new Action(() => { rtbMensagens.AppendText(msgRecebida + Environment.NewLine); }));
+
+                                packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                stream.Write(packet, 0, packet.Length);
+                            }
+                            break;
                         case ProtocolSICmdType.USER_OPTION_9:
                             int resultCode = protocolSI.GetIntFromData();
                             Invoke(new Action(() => { checkServerResponse(resultCode); }));
@@ -293,7 +303,7 @@ namespace JogoDoGaloV1._0
 
         private void button2_Click(object sender, EventArgs e) //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
-            Form1 newcliente = new Form1();
+            JogoDoGalo_ClientForm newcliente = new JogoDoGalo_ClientForm();
             newcliente.Show();
         }
 
