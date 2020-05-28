@@ -114,6 +114,23 @@ namespace Server
 
             //Abrimos um novo canal de comunicação
             networkStream = client.TcpClient.GetStream();
+
+            //  **** TABELA DE UTILIZAÇÃO DE COMANDOS DO PROTOCOLSI ****
+            //
+            //  SYM_CIPHER_DATA       => Receção de menssagem encriptada
+            //  DIGITAL_SIGNATURE     => Receção de assinatura digital da mensagem enviada
+            //
+            //  PublickKey            => Receção da PublicKey do client
+            //
+            //  UserOption1           => Receção de username
+            //  UserOption2           => Receção de password
+            //  UserOption3           => Receção de pedido de login
+            //  UserOption4           => Receção de pedido de registo
+            //  UserOption5           => Receção de pedido de logout
+            //  UserOption6           => Receção de pedido de StartGame
+            //  UserOption7           => Receção de pedido de Jogada
+            //  UserOption8           => Receção de username
+            //
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -528,7 +545,6 @@ namespace Server
             {
                 TSCryptography tsCryptoBroadCast = new TSCryptography(player.IV, player.SymKey);
                 NetworkStream streamBroadCast = player.TcpClient.GetStream();
-
                 
                 EncryptSignAndSendProtocol(data, ProtocolSICmdType.USER_OPTION_1, streamBroadCast, tsCryptoBroadCast);
             }
