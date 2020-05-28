@@ -164,6 +164,7 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.ACK:
                             Acknoledged = true;
                             break;
+
                         case ProtocolSICmdType.USER_OPTION_8:
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {

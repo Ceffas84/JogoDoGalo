@@ -10,11 +10,13 @@ namespace Server.Models
     {
         REGISTER_ERROR = 00,
         LOGIN_ERROR = 01,
-        NOT_LOGGED = 02,
+        NOT_LOGGED_TO_START_GAME = 02,
         ALREADY_LOGGED = 03,
         USERNAME_OR_PASSWORD_INVALID_LENGTH = 04,
         INVALID_DIGITAL_SIGNATURE = 05,
         LOGGED_IN_ANOTHER_CLIENT = 06,
+        NOT_LOGGED_TO_CHAT = 07,
+
 
 
         REGISTER_SUCCESS = 10,

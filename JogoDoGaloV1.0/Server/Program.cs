@@ -384,7 +384,7 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED_TO_START_GAME);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
@@ -457,12 +457,12 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED_TO_START_GAME);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
                     case ProtocolSICmdType.USER_OPTION_8:
-                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
+                        if (lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                         {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {
@@ -478,7 +478,7 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED_TO_START_GAME);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
