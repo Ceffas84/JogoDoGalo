@@ -131,7 +131,16 @@ namespace Server
             //  UserOption6           => Receção de pedido de StartGame
             //  UserOption7           => Receção de pedido de Jogada
             //  UserOption8           => Receção de mensagens do Chat
-            //
+            //  UserOption8           =>
+
+            Client gamePlayer;
+            byte[] objGamePlayer;
+
+            GamePlay gamePlay;
+            byte[] objGamePLay;
+
+            byte[] objPlayList;
+
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
@@ -144,7 +153,6 @@ namespace Server
                         this.symDecipherData = decryptedData;
 
                         Console.WriteLine("SymCipherData recebida no servidor: {0}", Encoding.UTF8.GetString(this.symDecipherData));
-
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);    
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
@@ -312,7 +320,7 @@ namespace Server
                     case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE START GAME
                                                                             //falta tamanho tabuleiro
                         byte[] boardDimension = protocolSI.GetData();
-
+                        byte[] objNextPlayer;
                         if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                             {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
@@ -330,7 +338,7 @@ namespace Server
                                             BroadCastData(boardDimension, ProtocolSICmdType.USER_OPTION_1);
 
                                             //3 - Broadcast do Next Player                                            
-                                            byte[] objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetNextPlayer());
+                                            objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
                                             BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
 
                                             break;
@@ -351,7 +359,7 @@ namespace Server
                                             BroadCastData(boardDimension, ProtocolSICmdType.USER_OPTION_1);
 
                                             //3 - Broadcast do Next Player                                            
-                                            objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetNextPlayer());
+                                            objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
                                             BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
                                             break;
                                     }
@@ -381,9 +389,7 @@ namespace Server
                         }
                         break;
                     case ProtocolSICmdType.USER_OPTION_7:                   //RECEÇÃO DE JOGADA 
-                        GamePlay gamePlay;
-                        byte[] objPlayList;
-                        byte[] objNextPlayer;
+                        
 
                         if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                         {
@@ -402,19 +408,33 @@ namespace Server
                                         gamePlay = (GamePlay)TSCryptography.ByteArrayToObject(symDecipherData);
                                         if(!lobby.gameRoom.gameBoard.GamePlayExist(gamePlay.Coord_x, gamePlay.Coord_y))
                                         {
-                                            //2 - Adiciona a jogada
+                                            //Adiciona a jogada
                                             lobby.gameRoom.gameBoard.AddGamePlay(gamePlay);
 
-                                            //3 - Atualiza o próximo jogador a jogar
-                                            lobby.gameRoom.SetNextPlayer();
+                                            //Verifica se o jogador Ganhou
+                                            if (!lobby.gameRoom.gameBoard.CheckPLayerWins(gamePlay.Player))
+                                            {
+                                                //Broadcast da jogada
+                                                objPlayList = TSCryptography.ObjectToByteArray(lobby.gameRoom.gameBoard.GetPlayList());
+                                                BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
 
-                                            //4 - Broadcast da jogada
-                                            objPlayList = TSCryptography.ObjectToByteArray(lobby.gameRoom.gameBoard.GetPlayList());
-                                            BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
+                                                //Atualiza o próximo jogador a jogar
+                                                lobby.gameRoom.SetNextPlayer();
 
-                                            //5 - Broadcast do Next Player                                            
-                                            objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetNextPlayer());
-                                            BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
+                                                //Broadcast do Next Player                                            
+                                                objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
+                                                BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
+                                            }
+                                            else
+                                            {
+                                                //Atualiza o estado do jogo para GameOver
+                                                lobby.gameRoom.gameBoard.SetGameState(GameState.GameOver)
+
+;                                               //Faz BroadCast do GameOver
+                                                gamePlayer = lobby.gameRoom.GetCurrentPlayer();
+                                                objGamePlayer = TSCryptography.ObjectToByteArray(gamePlayer);
+                                                BroadCastData(objGamePlayer, ProtocolSICmdType.USER_OPTION_4);
+                                            }
                                         }
                                         else
                                         {
@@ -442,6 +462,25 @@ namespace Server
                         }
                         break;
                     case ProtocolSICmdType.USER_OPTION_8:
+                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
+                        {
+                            if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
+                            {
+                                BroadCastChat(symDecipherData, client);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.INVALID_DIGITAL_SIGNATURE);
+                                networkStream.Write(packet, 0, packet.Length);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            networkStream.Write(packet, 0, packet.Length);
+                        }
                         break;
                     case ProtocolSICmdType.PUBLIC_KEY:
                         //Recebe a public key do client
@@ -596,7 +635,7 @@ namespace Server
                     player_plus_message = Encoding.UTF8.GetBytes(str_player_plus_message);
                 }
 
-                EncryptSignAndSendProtocol(player_plus_message, ProtocolSICmdType., streamBroadCast, tsCryptoBroadCast);
+                EncryptSignAndSendProtocol(player_plus_message, ProtocolSICmdType.USER_OPTION_8, streamBroadCast, tsCryptoBroadCast);
             }
         }
         private void BroadCastData(byte[] data, ProtocolSICmdType protocolSICmdType)

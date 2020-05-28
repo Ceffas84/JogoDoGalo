@@ -33,7 +33,7 @@ namespace Server.Models
             }
             return false;
         }
-        public Client GetNextPlayer()
+        public Client GetCurrentPlayer()
         {
             return playerTurn;
         }
