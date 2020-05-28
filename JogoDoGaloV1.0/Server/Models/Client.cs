@@ -12,12 +12,11 @@ namespace Server.Models
         public TcpClient TcpClient { get; set; }
         public int ClientID { get; set; }
         public string PublicKey { get; set; }
-
         public string ServerPrivateKey { get; set; }
-        
         public byte[] SymKey { get; set; }
         public byte[] IV { get; set; }
         public string username { set; get; }
+        public int userId { get; set; }
         public byte[] password { set; get; }
         public byte[] salt { get; set; }
         public byte[] saltedPasswordHash { set; get; }
@@ -26,6 +25,10 @@ namespace Server.Models
         public Client()
         {
 
+        }
+        public int GetUserId()
+        {
+            return userId;
         }
         public override string ToString()
         {

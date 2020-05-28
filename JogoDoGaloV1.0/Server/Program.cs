@@ -1,6 +1,5 @@
 ﻿using EI.SI;
 using Server.Models;
-using Server.Models.JogoDoGalo_Server.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,7 +17,7 @@ namespace Server
     {
         private const int PORT = 10000;
         private static TcpListener tcpListener;
-        private static GameRoom gameRoom = new GameRoom();
+        private static Lobby lobby = new Lobby();
         public static string SERVERPUBLICKEY;
         public static string SERVERPRIVATEKEY;
         static void Main(string[] args)
@@ -52,30 +51,26 @@ namespace Server
 
                 Client client = new Client();
 
-                if (tcpListener.Pending())
-                {
-                    if (gameRoom.listUsers.Count < 2)
-                    {
+            
                         //aceitar ligações
                         client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
 
-                        gameRoom.listUsers.Add(client);
-                        client.ClientID = gameRoom.listUsers.Count();
+                        lobby.listClients.Add(client);
+                        client.ClientID = lobby.listClients.Count();
                         Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
                         Console.WriteLine("Client_{0} added to the game room!" + Environment.NewLine, client.ClientID);
 
                         //Lança uma thread com um listner
-                        ClientHandler clientHandler = new ClientHandler(gameRoom);
+                        ClientHandler clientHandler = new ClientHandler(lobby);
                         clientHandler.Handle();
-                    }
-                }
+                
             }
         }
     }
 
     class ClientHandler
     {
-        GameRoom gameRoom;
+        Lobby lobby;
 
         private TSCryptography tsCrypto;
         private Authentication Auth;
@@ -90,9 +85,9 @@ namespace Server
         private byte[] encryptedData;
         private byte[] decryptedData;
         private byte[] packet;
-        public ClientHandler(GameRoom gameroom)
+        public ClientHandler(Lobby lobby)
         {
-            gameRoom = gameroom;
+            this.lobby = lobby;
             tsCrypto = new TSCryptography();
             this.Auth = new Authentication();
             this.protocolSI = new ProtocolSI();
@@ -103,13 +98,13 @@ namespace Server
             //ServerPrivateKey = serverPrivateKey;
             Thread thread = new Thread(ClientListener);
             //thread.Start(this.gameRoom.listUsers[gameRoom.listUsers.Count - 1]);
-            thread.Start(this.gameRoom);
+            thread.Start(this.lobby);
         }
         public void ClientListener(object obj)
         {
             //Recebemos o user que efetuou ligação no servidor
-            GameRoom gameRoomThread = (GameRoom)obj;
-            Client client = gameRoom.listUsers[gameRoom.listUsers.Count-1];
+            Lobby lobbyThread = (Lobby)obj;
+            Client client = lobby.listClients[lobby.listClients.Count-1];
 
             //user.PrivateKey = tsCrypto.GetPrivateKey();
 
@@ -195,32 +190,54 @@ namespace Server
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
+                        bool alreadyLogged;
 
-                        if (!client.isLogged)
+                        if (!(lobby.gameRoom.listPlayers.Count < 2))
                         {
-                            if (client.username.Length > 7 && client.password.Length > 7)
-                            {
-                                if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
+                            Console.WriteLine("Numero máximo de jogadores na sala já atingido");
+                            break;
+                        }
+
+                        if (!lobby.gameRoom.listPlayers.Contains(client))        //Verificamos de o client já está loggado no gameroom
+                        {
+                            int id = Auth.LoggedUserId(client.username);
+                            if(!lobby.gameRoom.listPlayers.Exists(x => x.GetUserId() == id))        //Verificamo se o user com que o cliente está a tentar aceder
+                            {                                                                       //já está logado noutro client
+                                if (client.username.Length > 7 && client.password.Length > 7)
                                 {
-                                    Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
-                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_SUCCESS);
-                                    networkStream.Write(packet, 0, packet.Length);
-                                    client.isLogged = true;
-                                    //Broadcast dos utilizadores logados
+                                    if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
+                                    {
+                                        Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
+                                        packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_SUCCESS);
+                                        networkStream.Write(packet, 0, packet.Length);
+
+                                       
+                                            client.isLogged = true;
+                                            client.userId = id;
+                                            lobby.gameRoom.listPlayers.Add(client);
+                                      
+                                        
+                                        //Broadcast dos utilizadores logados
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
+                                        packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_ERROR);
+                                        networkStream.Write(packet, 0, packet.Length);
+                                    }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
-                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_ERROR);
+                                    Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+                                    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH);
                                     networkStream.Write(packet, 0, packet.Length);
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
-                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH);
-                                networkStream.Write(packet, 0, packet.Length);
+                                Console.WriteLine("Username => {0}: is already logged on another client" + Environment.NewLine, client.username);
                             }
+                            
                         }
                         else
                         {
@@ -230,10 +247,10 @@ namespace Server
                         }
                         break;
 
-                    case ProtocolSICmdType.USER_OPTION_4:                   //RECEÇÃO DE UM PEDIDO DE LOGIN      
+                    case ProtocolSICmdType.USER_OPTION_4:                   //RECEÇÃO DE UM PEDIDO DE REGISTO   
                         //FAZ O REGISTO DE UM NOVO USER
-                        if (!client.isLogged)
-                        {
+                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
+                            {
                             if (client.username.Length > 7 && client.password.Length > 7)
                             {
                                 try
@@ -242,15 +259,13 @@ namespace Server
                                 }
                                 catch (Exception ex)
                                 {
-                                    
-
-                                    Console.WriteLine("Client_{0}: register unsuccessfull", client.ClientID);
+                                    Console.WriteLine("Client_{0}: => {0}: register unsuccessfull", client.ClientID, client.username);
                                     packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.REGISTER_ERROR);
                                     networkStream.Write(packet, 0, packet.Length);
                                     networkStream.Flush();
                                     break;
                                 }
-                                Console.WriteLine("Client_{0}: register successfull", client.ClientID);
+                                Console.WriteLine("Client_{0}: => {0}: register successfull", client.ClientID, client.username);
                                 packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.REGISTER_SUCCESS);
                                 networkStream.Write(packet, 0, packet.Length);
                                 //packet = protocolSI.Make(ProtocolSICmdType.ACK);
@@ -271,18 +286,23 @@ namespace Server
                         }
 
                         break;
-                    case ProtocolSICmdType.USER_OPTION_5:                   //RECEÇÃO DE START GAME
-                        if (client.isLogged)
-                        {
+                    case ProtocolSICmdType.USER_OPTION_6:
+                        //logout
+                        break;
+                    case ProtocolSICmdType.USER_OPTION_7:                   //RECEÇÃO DE START GAME
+                        //if (client.isLogged)
+                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
+                            {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {
-                                if(gameRoom.listUsers.Count > 1) //---> Esta comparação devia ser o count == 2
+                                if(lobby.gameRoom.listPlayers.Count > 1) //---> Esta comparação devia ser o count == 2
                                 {
-                                    switch (gameRoom.gameBoard.GetGameState())
+                                    switch (lobby.gameRoom.gameBoard.GetGameState())
                                     {
                                         case GameState.Standby:
-                                            gameRoom.gameBoard = new GameBoard();       //inserir lista jogadores
+                                            lobby.gameRoom.gameBoard = new GameBoard();       //inserir lista jogadores
                                             //1 - Broadcast do start game
+                                            
                                             //2 - Broadcast do jogador a jogar
                                             break;
                                         case GameState.OnGoing:
@@ -291,8 +311,8 @@ namespace Server
                                             networkStream.Write(packet, 0, packet.Length);
                                             break;
                                         case GameState.GameOver:
-                                            gameRoom.gameBoard = new GameBoard();       //Inserir lista jogadores
-                                            gameRoom.gameBoard.GameStart();
+                                            lobby.gameRoom.gameBoard = new GameBoard();       //Inserir lista jogadores
+                                            lobby.gameRoom.gameBoard.GameStart();
                                             break;
                                     }
                                 }
@@ -320,10 +340,11 @@ namespace Server
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
-                    case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE JOGADA 
-                        if (client.isLogged)
-                        {
-                            switch (gameRoom.gameBoard.GetGameState())
+                    case ProtocolSICmdType.USER_OPTION_8:                   //RECEÇÃO DE JOGADA 
+                        //if (client.isLogged)
+                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está no gameroom
+                            {
+                            switch (lobby.gameRoom.gameBoard.GetGameState())
                             {
                                 case GameState.Standby:
                                     Console.WriteLine("Game as not yeat started!");
@@ -395,7 +416,18 @@ namespace Server
 
             client.TcpClient.Close();
             networkStream.Close();
-            gameRoom.listUsers.Remove(client);
+
+            //Quando o utilizador abandona o game room
+            if (lobby.gameRoom.listPlayers.Contains(client))
+            {
+                lobby.gameRoom.listPlayers.Remove(client);
+                Console.WriteLine("Player {0} left the game room" + Environment.NewLine, client.username);
+            }
+            
+            //Quando o utilizador abandona o lobby
+            lobby.listClients.Remove(client);
+            Console.WriteLine("Client_{0} left lobby" + Environment.NewLine, client.ClientID);
+
         }
 
         /**
@@ -467,18 +499,17 @@ namespace Server
             Console.WriteLine("Assinatura digital confirmada");
         }
 
-
         private void BroadCastChat(byte[] data, Client clientWhoSentMsg)
         {
-            foreach (Client client in gameRoom.listUsers)
+            foreach (Client player in lobby.gameRoom.listPlayers)
             {
-                TSCryptography tsCryptoBroadCast = new TSCryptography(client.IV, client.SymKey);
-                //ProtocolSI protocolSI = new ProtocolSI();
-                NetworkStream streamBroadCast = client.TcpClient.GetStream();
+                TSCryptography tsCryptoBroadCast = new TSCryptography(player.IV, player.SymKey);
+                NetworkStream streamBroadCast = player.TcpClient.GetStream();
+
                 string str_player_plus_message;
                 byte[] player_plus_message;
 
-                if (client.ClientID == clientWhoSentMsg.ClientID){
+                if (player.ClientID == clientWhoSentMsg.ClientID){
                     str_player_plus_message = "Eu: " + Encoding.UTF8.GetString(data);
                     player_plus_message = Encoding.UTF8.GetBytes(str_player_plus_message);
                 }
@@ -489,6 +520,17 @@ namespace Server
                 }
 
                 EncryptSignAndSendProtocol(player_plus_message, ProtocolSICmdType.USER_OPTION_1, streamBroadCast, tsCryptoBroadCast);
+            }
+        }
+        private void BroadCastData(byte[] data)
+        {
+            foreach (Client player in lobby.gameRoom.listPlayers)
+            {
+                TSCryptography tsCryptoBroadCast = new TSCryptography(player.IV, player.SymKey);
+                NetworkStream streamBroadCast = player.TcpClient.GetStream();
+
+                
+                EncryptSignAndSendProtocol(data, ProtocolSICmdType.USER_OPTION_1, streamBroadCast, tsCryptoBroadCast);
             }
         }
     }
