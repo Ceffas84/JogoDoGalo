@@ -14,7 +14,9 @@ namespace Server.Models
         ALREADY_LOGGED = 03,
         USERNAME_OR_PASSWORD_INVALID_LENGTH = 04,
         INVALID_DIGITAL_SIGNATURE = 05,
-        
+        LOGGED_IN_ANOTHER_CLIENT = 06,
+
+
         REGISTER_SUCCESS = 10,
         LOGIN_SUCCESS = 11,
 

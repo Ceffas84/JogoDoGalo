@@ -215,7 +215,7 @@ namespace Server
                             break;
                         }
 
-                        if (!lobby.gameRoom.listPlayers.Contains(client))        //Verificamos de o client já está loggado no gameroom
+                        if (!lobby.gameRoom.listPlayers.Contains(client))        //Verificamos se o client já está loggado no gameroom
                         {
                             int id = Auth.LoggedUserId(client.username);
                             if(!lobby.gameRoom.listPlayers.Exists(x => x.GetUserId() == id))        //Verificamo se o user com que o cliente está a tentar aceder
@@ -253,6 +253,8 @@ namespace Server
                             else
                             {
                                 Console.WriteLine("Username => {0}: is already logged on another client" + Environment.NewLine, client.username);
+                                packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGGED_IN_ANOTHER_CLIENT);
+                                networkStream.Write(packet, 0, packet.Length);
                             }
                             
                         }

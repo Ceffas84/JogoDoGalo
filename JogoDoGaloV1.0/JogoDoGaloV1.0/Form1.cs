@@ -181,6 +181,12 @@ namespace JogoDoGaloV1._0
                 case 04:
                     MessageBox.Show("O username e a password têm de ter pelo menos 8 caractéres.", "Erro de introdução de dados");
                     break;
+                case 05:
+                    MessageBox.Show("Assinatura diginal inválida.", "Erro de Assinatura digital.");
+                    break;
+                case 06:
+                    MessageBox.Show("O utilizador já se encontra logado noutra aplicaçáo cliente.", "Erro de utilizador.");
+                    break;
                 case 10:
                     MessageBox.Show("Registado com sucesso! Faça login para se juntar a uma sala de jogo.", "Sucesso de Registo");
                     break;
