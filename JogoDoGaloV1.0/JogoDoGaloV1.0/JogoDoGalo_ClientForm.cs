@@ -75,6 +75,8 @@ namespace JogoDoGaloV1._0
             TcpClient tcpClient = (TcpClient)obj;
             NetworkStream stream = tcpClient.GetStream();
 
+            SafeCallDelegate safeCallDelegate;
+
             //  **** TABELA DE UTILIZAÇÃO DE COMANDOS DO PROTOCOLSI ****
             //
             //  SYM_CIPHER_DATA       => Receção de menssagem encriptada
@@ -104,37 +106,50 @@ namespace JogoDoGaloV1._0
                             encryptedData = protocolSI.GetData();
                             decryptedData = tsCrypto.SymetricDecryption(encryptedData);
                             this.symDecipherData = decryptedData;
-                            
-                            //Invoke(new Action(() => { Console.WriteLine("SymCipherData recebida no cliente: {0}", Encoding.UTF8.GetString(this.symDecipherData)); }));
-
-
-
-
+                            Console.WriteLine("SymCipherData recebida no cliente: {0}", Encoding.UTF8.GetString(this.symDecipherData));
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
                         case ProtocolSICmdType.DIGITAL_SIGNATURE:
                             this.digitalSignature = protocolSI.GetData();
 
-                            Invoke(new Action(() => { Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature)); }));
+                            Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature));
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
                         case ProtocolSICmdType.USER_OPTION_1:
 
-                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
-                            {
-                                packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                                stream.Write(packet, 0, packet.Length);
+                            //if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
+                            //{
+                            //    packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            //    stream.Write(packet, 0, packet.Length);
 
-                                Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada no cliente"); }));
+                            //    Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada no cliente"); }));
+                            //}
+
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            stream.Write(packet, 0, packet.Length);
+                            break;
+                        case ProtocolSICmdType.USER_OPTION_5:
+                            if (tsCrypto.VerifyData(symDecipherData, digitalSignature, serverPublicKey))
+                            {
+                                //safeCallDelegate = new SafeCallDelegate((sdfsdf) => { lbLoggedClients.Items.Clear(); });
+                                //lbLoggedClients.Invoke(safeCallDelegate);
+                                
+
+                                Invoke(new Action(() => { lbLoggedClients.Items.Clear(); }));
+                                List<string> gameRoomLoggedPlayers = (List<string>)TSCryptography.ByteArrayToObject(symDecipherData);
+                                foreach (string username in gameRoomLoggedPlayers)
+                                {
+                                    safeCallDelegate = new SafeCallDelegate((user) => { lbLoggedClients.Items.Add(user); });
+                                    lbLoggedClients.Invoke(safeCallDelegate, new object[] { username });
+                                }
                             }
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-
                         //******************   ABRETURA DE COMUNICAÇÃO ENCRIPTADA SIMÉTRICA   ******************
                         case ProtocolSICmdType.PUBLIC_KEY:
                             //Recebe a public key do client
@@ -167,17 +182,20 @@ namespace JogoDoGaloV1._0
                             Invoke(new Action(() => { Console.WriteLine("Recebido IV: {0}", Convert.ToBase64String(decryptedIV)); }));
                             break;
 
-                        case ProtocolSICmdType.ACK:
-                            Acknoledged = true;
-                            break;
+                        //case ProtocolSICmdType.ACK:
+                        //    Acknoledged = true;
+                        //    break;
                         case ProtocolSICmdType.USER_OPTION_8:
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
                                 msgRecebida = Encoding.UTF8.GetString(symDecipherData);
 
                                 //Invoke(new Action(() => { rtbMensagens.AppendText(msgRecebida + Environment.NewLine); }));
-                                var d = new SafeCallDelegate((texto) => { rtbMensagens.AppendText(texto); });
-                                rtbMensagens.Invoke(d, new object[] { msgRecebida });
+                                //var d = new SafeCallDelegate((texto) => { rtbMensagens.AppendText(texto); });
+                                //rtbMensagens.Invoke(d, new object[] { msgRecebida });
+
+                                safeCallDelegate = new SafeCallDelegate((message) => { receiveChatMessage(message); });
+                                rtbMensagens.Invoke(safeCallDelegate, new object[] { msgRecebida });
 
                                 packet = protocolSI.Make(ProtocolSICmdType.ACK);
                                 stream.Write(packet, 0, packet.Length);
@@ -185,7 +203,21 @@ namespace JogoDoGaloV1._0
                             break;
                         case ProtocolSICmdType.USER_OPTION_9:
                             int resultCode = protocolSI.GetIntFromData();
+
+                            //safeCallDelegate = new SafeCallDelegate((resultCode1) => { receiveChatMessage(resultCode1); });
+                            //rtbMensagens.Invoke(safeCallDelegate, new object[] { resultCode });
+
+                            
+
                             Invoke(new Action(() => { checkServerResponse(resultCode); }));
+
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            stream.Write(packet, 0, packet.Length);
+
+                            //safeCallDelegate = new SafeCallDelegate((code) => { checkServerResponse(code); });
+                            //checkServerResponse( .Invoke(safeCallDelegate, new object[] { resultCode });
+
+
                             break;
                     }
                 }
@@ -307,6 +339,7 @@ namespace JogoDoGaloV1._0
 
             networkStream.Close();
             tcpClient.Close();
+            
         }
 
         private void button2_Click(object sender, EventArgs e) //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
@@ -343,6 +376,19 @@ namespace JogoDoGaloV1._0
 
             //Envia a mensagem encriptada, a assinatura digital e o Protocol a usar para lidar com a informação recebida
             EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_8);
+        }
+        private void receiveChatMessage(string message)
+        {
+            message = message + Environment.NewLine;
+            rtbMensagens.AppendText(message);
+        }
+        private void receiveUpdatePlayers(List<string> gameRoomLoggedPlayers)
+        {
+            lbLoggedClients.Items.Clear();
+            foreach (string client in gameRoomLoggedPlayers)
+            {
+                lbLoggedClients.Items.Add(client);
+            }
         }
     }
 }

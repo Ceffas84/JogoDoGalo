@@ -131,7 +131,7 @@ namespace Server
             //  UserOption6           => Receção de pedido de StartGame
             //  UserOption7           => Receção de pedido de Jogada
             //  UserOption8           => Receção de mensagens do Chat
-            //  UserOption8           =>
+            //  UserOption9           =>
 
             Client gamePlayer;
             byte[] objGamePlayer;
@@ -236,13 +236,17 @@ namespace Server
                                         Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
                                         packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.LOGIN_SUCCESS);
                                         networkStream.Write(packet, 0, packet.Length);
-                                       
+                                        while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+                                        {
+                                            networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+                                        }
+
                                         client.isLogged = true;
                                         client.userId = id;
                                         lobby.gameRoom.listPlayers.Add(client);
 
                                         //Broadcast dos utilizadores logados
-                                        byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.ListPlayers());
+                                        byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
                                         BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
                                     }
                                     else
@@ -331,7 +335,7 @@ namespace Server
                                     {
                                         case GameState.Standby:
                                             //1 - Cria um novo GameBoard com os users que estão na GameRoom
-                                            lobby.gameRoom.gameBoard = new GameBoard(3, lobby.gameRoom.ListPlayers());      
+                                            lobby.gameRoom.gameBoard = new GameBoard(3);      
                                             
                                             //2 - Broadcast do start game
                                             boardDimension = symDecipherData;
@@ -538,6 +542,10 @@ namespace Server
             {
                 lobby.gameRoom.listPlayers.Remove(client);
                 Console.WriteLine("Player {0} left the game room" + Environment.NewLine, client.username);
+
+                //Broadcast dos utilizadores logados
+                byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
+                BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
             }
             
             //Quando o utilizador abandona o lobby
@@ -561,10 +569,11 @@ namespace Server
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
 
-            while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-            {
-                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-            }
+            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            //{
+            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            //}
+            Thread.Sleep(100);
 
             //Cria e envia a assinatura digital da menssagem
             digitalSignature = tsCrypto.SignData(data, Program.SERVERPRIVATEKEY);
@@ -572,20 +581,22 @@ namespace Server
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
 
-            while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-            {
-                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-            }
+            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            //{
+            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            //}
+            Thread.Sleep(100);
 
             //Envia o Protocol de comando
             packet = protocolSI.Make(cmdType);
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
 
-            while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
-            {
-                networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
-            }
+            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            //{
+            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            //}
+            Thread.Sleep(100);
 
             //Envia o Protocol de comando
             Console.WriteLine("Assinatura digital confirmada");
@@ -598,18 +609,32 @@ namespace Server
             packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
             stream.Write(packet, 0, packet.Length);
             stream.Flush();
+            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            //{
+            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            //}
+            Thread.Sleep(100);
 
             //Cria e envia a assinatura digital da menssagem
             digitalSignature = crypto.SignData(data, Program.SERVERPRIVATEKEY);
             packet = protocolSI.Make(ProtocolSICmdType.DIGITAL_SIGNATURE, digitalSignature);
             stream.Write(packet, 0, packet.Length);
             stream.Flush();
-
+            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            //{
+            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            //}
+            Thread.Sleep(100);
 
             //Envia o Protocol de comando
             packet = protocolSI.Make(cmdType);
             stream.Write(packet, 0, packet.Length);
             stream.Flush();
+            //while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
+            //{
+            //    networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
+            //}
+            Thread.Sleep(100);
 
             //Envia o Protocol de comando
             Console.WriteLine("Assinatura digital confirmada");
@@ -646,6 +671,7 @@ namespace Server
                 NetworkStream streamBroadCast = player.TcpClient.GetStream();
                 
                 EncryptSignAndSendProtocol(data, protocolSICmdType, streamBroadCast, tsCryptoBroadCast);
+                Console.WriteLine("Client_{0}: Enviado Procolo => {1}", player.username, protocolSICmdType);
             }
         }
         private List<Client> ListClientsGameRoom()

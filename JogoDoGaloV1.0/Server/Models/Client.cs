@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Server.Models
 {
+    [Serializable]
     public class Client
     {
         public TcpClient TcpClient { get; set; }

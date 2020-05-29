@@ -49,7 +49,7 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btnGameStart = new System.Windows.Forms.Button();
             this.gbPlayersBoard = new System.Windows.Forms.GroupBox();
-            this.lbPlayersBoard = new System.Windows.Forms.ListBox();
+            this.lbLoggedClients = new System.Windows.Forms.ListBox();
             this.gBoxServer.SuspendLayout();
             this.gBoxChat.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -262,7 +262,7 @@
             // 
             // gbPlayersBoard
             // 
-            this.gbPlayersBoard.Controls.Add(this.lbPlayersBoard);
+            this.gbPlayersBoard.Controls.Add(this.lbLoggedClients);
             this.gbPlayersBoard.Location = new System.Drawing.Point(18, 470);
             this.gbPlayersBoard.Name = "gbPlayersBoard";
             this.gbPlayersBoard.Size = new System.Drawing.Size(270, 154);
@@ -272,11 +272,11 @@
             // 
             // lbPlayersBoard
             // 
-            this.lbPlayersBoard.FormattingEnabled = true;
-            this.lbPlayersBoard.Location = new System.Drawing.Point(6, 19);
-            this.lbPlayersBoard.Name = "lbPlayersBoard";
-            this.lbPlayersBoard.Size = new System.Drawing.Size(258, 121);
-            this.lbPlayersBoard.TabIndex = 36;
+            this.lbLoggedClients.FormattingEnabled = true;
+            this.lbLoggedClients.Location = new System.Drawing.Point(6, 19);
+            this.lbLoggedClients.Name = "lbPlayersBoard";
+            this.lbLoggedClients.Size = new System.Drawing.Size(258, 121);
+            this.lbLoggedClients.TabIndex = 36;
             // 
             // Form1
             // 
@@ -328,7 +328,7 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button btnGameStart;
         private System.Windows.Forms.GroupBox gbPlayersBoard;
-        private System.Windows.Forms.ListBox lbPlayersBoard;
+        private System.Windows.Forms.ListBox lbLoggedClients;
     }
 }
 

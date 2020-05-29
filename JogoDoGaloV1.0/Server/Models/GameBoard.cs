@@ -19,7 +19,7 @@ namespace Server.Models
         {
             this.gameState = GameState.Standby;
         }
-        public GameBoard(int boardDimension, List<GamePlayer> gamePlayersList)
+        public GameBoard(int boardDimension)
         {
             BoardDimension = boardDimension;
             SequenceSize = SequenceSizeCalc(boardDimension);
