@@ -44,7 +44,7 @@ namespace JogoDoGaloV1._0
         private delegate void SafeCallDelegate(string text);
         string recivedMsg;
 
-        private Client client;
+        private int playerId;
 
         private Thread thread;
 
@@ -127,7 +127,7 @@ namespace JogoDoGaloV1._0
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
                                 int boardSize = symDecipherData[0];
-                                client.playerID = symDecipherData[1];
+                                playerId = symDecipherData[1];
                                 Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
                             }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
@@ -138,15 +138,9 @@ namespace JogoDoGaloV1._0
                             //usar para receber o qual o jogador ativo
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
-
-                                Client activePlayer = (Client)TSCryptography.ByteArrayToObject(symDecipherData);
-
-                                if(activePlayer.playerID == client.playerID)
-                                {
-
-                                }
-
-                                Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
+                                int id = symDecipherData[0];
+                                Invoke(new Action(() => { ActivePlayer(id); }));
+                             
                             }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
@@ -243,6 +237,20 @@ namespace JogoDoGaloV1._0
             }
             tcpClient.Close();
             stream.Close();
+        }
+
+        private void ActivePlayer(int id)
+        {
+            if(id == playerId)
+            {
+                gameDisplay.Text = "É a sua vez de jogar!!!";
+                gameDisplay.BackColor = Color.Green;
+            }
+            else
+            {
+                gameDisplay.Text = "Aguarda a sua vez";
+                gameDisplay.BackColor = Color.Gray;
+            }
         }
 
         private void checkServerResponse(int resultCode)

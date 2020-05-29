@@ -243,7 +243,7 @@ namespace Server
                                         }
 
                                         client.isLogged = true;
-                                        client.userId = id;
+                                        client.playerID = id;
                                         lobby.gameRoom.listPlayers.Add(client);
 
                                         //Broadcast dos utilizadores logados
