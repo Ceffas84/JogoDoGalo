@@ -157,11 +157,16 @@ namespace Server.Models
         {
             return this.BoardDimension;
         }
-        public List<GamePlay> GetPlayList()
+        public byte[,] GetPlayList()
         {
-
-            // array com as jogadas
-            return this.PlayList;
+            byte[,] list = new byte[PlayList.Count, 3];
+            for (int i = 0; i < PlayList.Count; i++)
+            {
+                    list[i, 1] = (byte)PlayList[i].Coord_x;
+                    list[i, 1] = (byte)PlayList[i].Coord_y;
+                    list[i, 1] = (byte)PlayList[i].Player.playerID;
+            }
+            return list;
         }
         public void RestartBoard()
         {
