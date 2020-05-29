@@ -11,12 +11,13 @@ namespace Server.Models
     {
         public int Coord_x;
         public int Coord_y;
-        public Client Player;
-        public GamePlay(int coord_x, int coord_y, Client player)
+        public int playerId;
+        //public Client Player;
+        public GamePlay(int coord_x, int coord_y, int playerId)
         {
             Coord_x = coord_x;
             Coord_y = coord_y;
-            Player = player;
+            this.playerId = playerId;
         }
     }
 }

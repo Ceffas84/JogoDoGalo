@@ -37,7 +37,8 @@ namespace Server.Models
         }
         public void SetNextPlayer()
         {
-            activePlayer = listPlayers[activePlayer.playerID];
+            int playerid = listPlayers.IndexOf(activePlayer) == 0 ? 1 : 0;
+            activePlayer = listPlayers[playerid];
         }
         public List<string> GetPlayersList()
         {
