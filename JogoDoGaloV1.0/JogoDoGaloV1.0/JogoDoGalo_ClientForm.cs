@@ -295,10 +295,7 @@ namespace JogoDoGaloV1._0
 
         private void button1_Click(object sender, EventArgs e)  //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
-            byte[] decryptedData = Encoding.UTF8.GetBytes(tbChat.Text);
-
-            //Envia um Protocol com a mensagem encriptada
-            EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_1);
+            DesenharTabuleiro(50, 100, 400, 3);
         }
 
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
@@ -393,21 +390,23 @@ namespace JogoDoGaloV1._0
             gameBoard = new List<Button>();
             int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
             int buttonSize = (size - (padding * (numButtons + 1))) / numButtons;
-            for (int I = 0; I < numButtons; I++)
+            for (int J = 0; J < numButtons; J++)//numButtons; J++) 
             {
-                for (int J = 0; J < numButtons; J++)
+                for (int I = 0; I < numButtons; I++)//((numButtons; I++)
                 {
                     Button newButton = new Button();
                     newButton.Text = "";
                     newButton.Name = I + "_" + J;
-                    newButton.Location = new Point(offset_x + padding + (I * (padding + buttonSize)), offset_y + padding + (J * (padding + buttonSize)));
+                    newButton.Location = new Point(offset_y + padding + (J * (padding + buttonSize)), offset_x + padding + (I * (padding + buttonSize)));
                     newButton.Width = buttonSize;
                     newButton.Height = buttonSize;
                     newButton.BackColor = System.Drawing.Color.LightGray;
                     newButton.Click += BoardClick;
                     gameBoard.Add(newButton);
                     this.Controls.Add(newButton);
+
                 }
+
             }
         }
 
@@ -443,8 +442,8 @@ namespace JogoDoGaloV1._0
         {
             string[] a = clickedButton.Name.Split('_');
             List<int> coord = new List<int>();
-            coord.Add(int.Parse(a[1]));
             coord.Add(int.Parse(a[0]));
+            coord.Add(int.Parse(a[1]));
             return coord;
         }
 
