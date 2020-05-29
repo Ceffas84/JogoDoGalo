@@ -426,13 +426,16 @@ namespace Server
                                             }
                                             else
                                             {
-                                                //Atualiza o estado do jogo para GameOver
-                                                lobby.gameRoom.SetGameState(GameState.GameOver)
+                                                //Broadcast da jogada
+                                                objPlayList = lobby.gameRoom.gameBoard.GetListOfPlays();
+                                                BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
 
-;                                               //Faz BroadCast do GameOver
-                                                //gamePlayer = lobby.gameRoom.GetCurrentPlayer();
-                                                //objGamePlayer = TSCryptography.ObjectToByteArray(gamePlayer);
-                                                //BroadCastData(objGamePlayer, ProtocolSICmdType.USER_OPTION_4);
+                                                //Atualiza o estado do jogo para GameOver
+                                                lobby.gameRoom.SetGameState(GameState.GameOver);
+
+                                                //Faz BroadCast do GameOver
+                                                BroadCastData(lobby.gameRoom.GetWinner(), ProtocolSICmdType.USER_OPTION_4);
+
                                             }
                                         }
                                         else

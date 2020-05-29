@@ -35,6 +35,15 @@ namespace Server.Models
             id[0] = (byte) activePlayer.playerID;
             return id;
         }
+        public byte[] GetWinner()
+        {
+            byte[] winner = new byte[activePlayer.username.Length + 1];
+            winner[0] = GetCurrentPlayer()[0];
+            byte[] winnerUsername = new byte[activePlayer.username.Length];
+            winnerUsername = Encoding.UTF8.GetBytes(activePlayer.username);
+            winner.CopyTo(winner, 1);
+            return winner;
+        }
         public void SetNextPlayer()
         {
             int playerid = listPlayers.IndexOf(activePlayer) == 0 ? 1 : 0;
