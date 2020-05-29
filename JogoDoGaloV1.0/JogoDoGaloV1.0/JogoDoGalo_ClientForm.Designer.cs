@@ -259,7 +259,6 @@
             this.btnGameStart.TabIndex = 36;
             this.btnGameStart.Text = "START";
             this.btnGameStart.UseVisualStyleBackColor = true;
-            this.btnGameStart.Click += new System.EventHandler(this.btnGameStart_Click);
             // 
             // gbPlayersBoard
             // 

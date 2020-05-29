@@ -38,13 +38,8 @@ namespace JogoDoGaloV1._0
         private byte[] decryptedData;
         private byte[] packet;
 
-        private int boardSize;
-        private List<Button> gameBoard;
-
         private delegate void SafeCallDelegate(string text);
-        string recivedMsg;
-
-        private int playerId;
+        string msgRecebida;
 
         private Thread thread;
 
@@ -115,48 +110,34 @@ namespace JogoDoGaloV1._0
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-
                         case ProtocolSICmdType.DIGITAL_SIGNATURE:
                             this.digitalSignature = protocolSI.GetData();
+
                             Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature));
+
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-
                         case ProtocolSICmdType.USER_OPTION_1:
-                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
-                            {
-                                int boardSize = symDecipherData[0];
-                                playerId = symDecipherData[1];
-                                Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
-                            }
+
+                            //if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
+                            //{
+                            //    packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            //    stream.Write(packet, 0, packet.Length);
+
+                            //    Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada no cliente"); }));
+                            //}
+
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-
-                        case ProtocolSICmdType.USER_OPTION_2:
-                            //usar para receber o qual o jogador ativo
-                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
-                            {
-                                int id = symDecipherData[0];
-                                Invoke(new Action(() => { ActivePlayer(id); }));
-                             
-                            }
-                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            stream.Write(packet, 0, packet.Length);
-                            break;
-
-                        case ProtocolSICmdType.USER_OPTION_3:
-                            //usar para receber jogadas
-                            break;
-
-                        case ProtocolSICmdType.USER_OPTION_4:
-                            //usar para receber informação de game over
-                            break;
-
                         case ProtocolSICmdType.USER_OPTION_5:
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, serverPublicKey))
                             {
+                                //safeCallDelegate = new SafeCallDelegate((sdfsdf) => { lbLoggedClients.Items.Clear(); });
+                                //lbLoggedClients.Invoke(safeCallDelegate);
+                                
+
                                 Invoke(new Action(() => { lbLoggedClients.Items.Clear(); }));
                                 List<string> gameRoomLoggedPlayers = (List<string>)TSCryptography.ByteArrayToObject(symDecipherData);
                                 foreach (string username in gameRoomLoggedPlayers)
@@ -165,32 +146,10 @@ namespace JogoDoGaloV1._0
                                     lbLoggedClients.Invoke(safeCallDelegate, new object[] { username });
                                 }
                             }
-                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            stream.Write(packet, 0, packet.Length);
-                            break;
-
-                        case ProtocolSICmdType.USER_OPTION_8:
-                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
-                            {
-                                recivedMsg = Encoding.UTF8.GetString(symDecipherData);
-
-                                safeCallDelegate = new SafeCallDelegate((message) => { receiveChatMessage(message); });
-                                rtbMensagens.Invoke(safeCallDelegate, new object[] { recivedMsg });
-
-                                packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                                stream.Write(packet, 0, packet.Length);
-                            }
-                            break;
-
-                        case ProtocolSICmdType.USER_OPTION_9:
-                            int resultCode = protocolSI.GetIntFromData();
-
-                            Invoke(new Action(() => { checkServerResponse(resultCode); }));
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-
                         //******************   ABRETURA DE COMUNICAÇÃO ENCRIPTADA SIMÉTRICA   ******************
                         case ProtocolSICmdType.PUBLIC_KEY:
                             //Recebe a public key do client
@@ -200,7 +159,6 @@ namespace JogoDoGaloV1._0
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             networkStream.Write(packet, 0, packet.Length);
                             break;
-
                         case ProtocolSICmdType.SECRET_KEY:
                             //Recebe a Chave Simétrica do ProtocolSI
                             byte[] encryptedSymKey = protocolSI.GetData();
@@ -212,7 +170,6 @@ namespace JogoDoGaloV1._0
                             SendAcknowledged(protocolSI, stream);
                             Invoke(new Action(() => { Console.WriteLine("Recebido SymKey: {0}", Convert.ToBase64String(decryptedSymKey)); }));
                             break;
-
                         case ProtocolSICmdType.IV:
                             //Recebe o Vetor de Inicialização do ProtocolSI
                             byte[] ivEncrypted = protocolSI.GetData();
@@ -228,6 +185,40 @@ namespace JogoDoGaloV1._0
                         //case ProtocolSICmdType.ACK:
                         //    Acknoledged = true;
                         //    break;
+                        case ProtocolSICmdType.USER_OPTION_8:
+                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
+                            {
+                                msgRecebida = Encoding.UTF8.GetString(symDecipherData);
+
+                                //Invoke(new Action(() => { rtbMensagens.AppendText(msgRecebida + Environment.NewLine); }));
+                                //var d = new SafeCallDelegate((texto) => { rtbMensagens.AppendText(texto); });
+                                //rtbMensagens.Invoke(d, new object[] { msgRecebida });
+
+                                safeCallDelegate = new SafeCallDelegate((message) => { receiveChatMessage(message); });
+                                rtbMensagens.Invoke(safeCallDelegate, new object[] { msgRecebida });
+
+                                packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                                stream.Write(packet, 0, packet.Length);
+                            }
+                            break;
+                        case ProtocolSICmdType.USER_OPTION_9:
+                            int resultCode = protocolSI.GetIntFromData();
+
+                            //safeCallDelegate = new SafeCallDelegate((resultCode1) => { receiveChatMessage(resultCode1); });
+                            //rtbMensagens.Invoke(safeCallDelegate, new object[] { resultCode });
+
+                            
+
+                            Invoke(new Action(() => { checkServerResponse(resultCode); }));
+
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            stream.Write(packet, 0, packet.Length);
+
+                            //safeCallDelegate = new SafeCallDelegate((code) => { checkServerResponse(code); });
+                            //checkServerResponse( .Invoke(safeCallDelegate, new object[] { resultCode });
+
+
+                            break;
                     }
                 }
                 catch(Exception ex)
@@ -239,20 +230,6 @@ namespace JogoDoGaloV1._0
             stream.Close();
         }
 
-        private void ActivePlayer(int id)
-        {
-            if(id == playerId)
-            {
-                gameDisplay.Text = "É a sua vez de jogar!!!";
-                gameDisplay.BackColor = Color.Green;
-            }
-            else
-            {
-                gameDisplay.Text = "Aguarda a sua vez";
-                gameDisplay.BackColor = Color.Gray;
-            }
-        }
-
         private void checkServerResponse(int resultCode)
         {
             switch (resultCode)
@@ -261,7 +238,7 @@ namespace JogoDoGaloV1._0
                     MessageBox.Show("Não foi possível fazer o seu registo.", "Erro de Registo");
                     break;
                 case 01:
-                    MessageBox.Show("Login inválido. Tem de fazer Sign Up.", "Erro de Login");
+                    MessageBox.Show("Login inválido.", "Erro de Login");
                     break;
                 case 02:
                     MessageBox.Show("Para jogar tem de estar logado.", "Erro de Login");
@@ -276,13 +253,13 @@ namespace JogoDoGaloV1._0
                     MessageBox.Show("Assinatura diginal inválida.", "Erro de Assinatura digital.");
                     break;
                 case 06:
-                    MessageBox.Show("O utilizador já se encontra logado noutra aplicação cliente.", "Erro de utilizador.");
+                    MessageBox.Show("O utilizador já se encontra logado noutra aplicaçáo cliente.", "Erro de utilizador.");
                     break;
                 case 10:
                     MessageBox.Show("Registado com sucesso! Faça login para se juntar a uma sala de jogo.", "Sucesso de Registo");
                     break;
                 case 11:
-                    MessageBox.Show("Logado com sucesso.", "Sucesso de Login");
+                    MessageBox.Show("Logado com sucesso. Espere até que estejam dois jogadores na sala para começar o jogo.", "Sucesso de Login");
                     break;
                 case 20:
                     MessageBox.Show("O jogo ainda não começou! Espere que estejam duas pessoas na sala para começar o jogo.", "Erro de utilizador");
@@ -314,8 +291,10 @@ namespace JogoDoGaloV1._0
 
         private void button1_Click(object sender, EventArgs e)  //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
-            DesenharTabuleiro(100, 50, 400, 3);
-            tbChat.Text = "O butão funciona!";
+            byte[] decryptedData = Encoding.UTF8.GetBytes(tbChat.Text);
+
+            //Envia um Protocol com a mensagem encriptada
+            EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_1);
         }
 
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
@@ -398,68 +377,18 @@ namespace JogoDoGaloV1._0
             //Envia a mensagem encriptada, a assinatura digital e o Protocol a usar para lidar com a informação recebida
             EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_8);
         }
-
         private void receiveChatMessage(string message)
         {
             message = message + Environment.NewLine;
             rtbMensagens.AppendText(message);
         }
-
-        private void btnGameStart_Click(object sender, EventArgs e)
+        private void receiveUpdatePlayers(List<string> gameRoomLoggedPlayers)
         {
-            int boardSize = 3;
-
-            byte[] boardSizeEmBytes = new byte[1];
-            boardSizeEmBytes[0] = (byte)boardSize;
-
-            EncryptSignAndSendProtocol(boardSizeEmBytes, ProtocolSICmdType.USER_OPTION_6);
-        }
-
-        private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
-        {
-            gameBoard = new List<Button>();
-            int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
-            int buttonSize = (size - (padding * (numButtons + 1))) / numButtons;
-            for (int I = 0; I < numButtons; I++)
+            lbLoggedClients.Items.Clear();
+            foreach (string client in gameRoomLoggedPlayers)
             {
-                for (int J = 0; J < numButtons; J++)
-                {
-                    Button newButton = new Button();
-                    newButton.Text = "";
-                    newButton.Name = I + "_" + J;
-                    newButton.Location = new Point(offset_x + padding + (I * (padding + buttonSize)), offset_y + padding + (J * (padding + buttonSize)));
-                    newButton.Width = buttonSize;
-                    newButton.Height = buttonSize;
-                    newButton.BackColor = System.Drawing.Color.LightGray;
-                    newButton.Click += BoardClick;
-                    gameBoard.Add(newButton);
-                    this.Controls.Add(newButton);
-                }
+                lbLoggedClients.Items.Add(client);
             }
         }
-
-        private void BoardClick(object sender, EventArgs e)
-        {
-            Button clickedButton = sender as Button;
-            List<int> coord = GetClickedButton(clickedButton);
-
-            byte[] coordEmBytes = new byte[2];
-
-            coordEmBytes[0] = (byte)coord[0];
-            coordEmBytes[1] = (byte)coord[1];
-
-            EncryptSignAndSendProtocol(coordEmBytes, ProtocolSICmdType.USER_OPTION_7);
-        }
-
-        private List<int> GetClickedButton(Button clickedButton)
-        {
-            string[] a = clickedButton.Name.Split('_');
-            List<int> coord = new List<int>();
-            coord.Add(int.Parse(a[1]));
-            coord.Add(int.Parse(a[0]));
-            return coord;
-        }
-
-
     }
 }
