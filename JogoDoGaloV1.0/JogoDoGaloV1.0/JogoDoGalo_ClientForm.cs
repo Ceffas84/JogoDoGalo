@@ -39,8 +39,10 @@ namespace JogoDoGaloV1._0
         private byte[] packet;
 
         private delegate void SafeCallDelegate(string text);
+        //private delegate void SafeCallDelegate(int number);
         string msgRecebida;
 
+        private List<Button> gameBoard;
         private int playerId;
 
         private Thread thread;
@@ -116,6 +118,7 @@ namespace JogoDoGaloV1._0
                             this.digitalSignature = protocolSI.GetData();
 
                             Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature));
+                            break;
 
                         case ProtocolSICmdType.USER_OPTION_1:
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
@@ -127,17 +130,14 @@ namespace JogoDoGaloV1._0
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-                        case ProtocolSICmdType.USER_OPTION_1:
 
                         case ProtocolSICmdType.USER_OPTION_2:
                             //usar para receber o qual o jogador ativo
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
-                                Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
-
-                            //    Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada no cliente"); }));
-                            //}
                                 int activePlayer = symDecipherData[0];
+
+                                Invoke(new Action(() => { ShowActivePlayer(activePlayer); }));
 
                             }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
@@ -146,10 +146,6 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.USER_OPTION_5:
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, serverPublicKey))
                             {
-                                //safeCallDelegate = new SafeCallDelegate((sdfsdf) => { lbLoggedClients.Items.Clear(); });
-                                //lbLoggedClients.Invoke(safeCallDelegate);
-                                
-
                                 Invoke(new Action(() => { lbLoggedClients.Items.Clear(); }));
                                 List<string> gameRoomLoggedPlayers = (List<string>)TSCryptography.ByteArrayToObject(symDecipherData);
                                 foreach (string username in gameRoomLoggedPlayers)
@@ -241,6 +237,8 @@ namespace JogoDoGaloV1._0
             tcpClient.Close();
             stream.Close();
         }
+
+        
 
         private void checkServerResponse(int resultCode)
         {
@@ -401,6 +399,70 @@ namespace JogoDoGaloV1._0
             {
                 lbLoggedClients.Items.Add(client);
             }
+        }
+        
+        private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
+        {
+            gameBoard = new List<Button>();
+            int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
+            int buttonSize = (size - (padding * (numButtons + 1))) / numButtons;
+            for (int I = 0; I < numButtons; I++)
+            {
+                for (int J = 0; J < numButtons; J++)
+                {
+                    Button newButton = new Button();
+                    newButton.Text = "";
+                    newButton.Name = I + "_" + J;
+                    newButton.Location = new Point(offset_x + padding + (I * (padding + buttonSize)), offset_y + padding + (J * (padding + buttonSize)));
+                    newButton.Width = buttonSize;
+                    newButton.Height = buttonSize;
+                    newButton.BackColor = System.Drawing.Color.LightGray;
+                    newButton.Click += BoardClick;
+                    gameBoard.Add(newButton);
+                    this.Controls.Add(newButton);
+                }
+            }
+        }
+
+        private void ShowActivePlayer(int number)
+        {
+            if(playerId == number)
+            {
+                gameDisplay.Text = "É a sua vez de jogar.";
+                gameDisplay.ForeColor = Color.White;
+                gameDisplay.BackColor = Color.Green;
+            }
+            else
+            {
+                gameDisplay.Text = "Aguarde pela sua vez de jogar.";
+                gameDisplay.ForeColor = Color.White;
+                gameDisplay.BackColor = Color.Gray;
+            }
+        }
+
+        private void BoardClick(object sender, EventArgs e)
+        {
+            Button clickedButton = sender as Button;
+            List<int> coord = GetClickedButton(clickedButton);
+        }
+
+        private List<int> GetClickedButton(Button clickedButton)
+        {
+            string[] a = clickedButton.Name.Split('_');
+            List<int> coord = new List<int>();
+            coord.Add(int.Parse(a[1]));
+            coord.Add(int.Parse(a[0]));
+            return coord;
+        }
+
+        private void btnGameStart_Click(object sender, EventArgs e)
+        {
+            int boardSize = 3;
+
+            byte[] boardSizeEmBytes = new byte[1];
+            boardSizeEmBytes[0] = (byte)boardSize;
+
+            EncryptSignAndSendProtocol(boardSizeEmBytes, ProtocolSICmdType.USER_OPTION_6);
         }
     }
 }
