@@ -412,17 +412,34 @@ namespace JogoDoGaloV1._0
 
         private void ShowActivePlayer(int number)
         {
-            if(playerId == number)
+            bool isPlayerTurn = playerId == number ? true : false;
+
+            if(isPlayerTurn)
             {
                 gameDisplay.Text = "É a sua vez de jogar.";
                 gameDisplay.ForeColor = Color.White;
                 gameDisplay.BackColor = Color.Green;
+                BlockBoard(isPlayerTurn);
             }
             else
             {
                 gameDisplay.Text = "Aguarde pela sua vez de jogar.";
                 gameDisplay.ForeColor = Color.White;
                 gameDisplay.BackColor = Color.Gray;
+                BlockBoard(isPlayerTurn);
+            }
+        }
+
+        private void BlockBoard(bool isPlayerTurn)
+        {
+            foreach(Button btn in gameBoard)
+            {
+                btn.Enabled = isPlayerTurn;
+
+                if (btn.Text == "X" || btn.Text == "O")
+                {
+                    btn.Enabled = false;
+                }
             }
         }
 
