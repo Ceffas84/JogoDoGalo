@@ -243,7 +243,7 @@ namespace Server
                                         }
 
                                         client.isLogged = true;
-                                        client.playerID = id;
+                                        client.playerID = id; //lobby.gameRoom.listPlayers.Count + 1;
                                         lobby.gameRoom.listPlayers.Add(client);
 
                                         //Broadcast dos utilizadores logados
@@ -400,18 +400,21 @@ namespace Server
                                     case GameState.OnGoing:
 
                                         //1 - Verifica se a jogada recebida é válida
-                                        byte[] gamePlay = new byte[2];                                       
-                                        gamePlay = (byte[])TSCryptography.ByteArrayToObject(symDecipherData);
-                                        if(!lobby.gameRoom.gameBoard.GamePlayExist(gamePlay[0], gamePlay[1]))
+                                        
+                                        //gamePlay = symDecipherData;
+                                        int coord_x = symDecipherData[0];
+                                        int coord_y = symDecipherData[1];
+
+                                        if(!lobby.gameRoom.gameBoard.GamePlayExist(coord_x, coord_y))
                                         {
                                             //Adiciona a jogada
-                                            lobby.gameRoom.gameBoard.AddGamePlay(gamePlay[0], gamePlay[1], client);
+                                            lobby.gameRoom.gameBoard.AddGamePlay(coord_x, coord_y, client.playerID);
 
                                             //Verifica se o jogador Ganhou
-                                            if (!lobby.gameRoom.gameBoard.CheckPLayerWins(client))
+                                            if (!lobby.gameRoom.gameBoard.CheckPLayerWins(client.playerID))
                                             {
                                                 //Broadcast da jogada
-                                                objPlayList = TSCryptography.ObjectToByteArray(lobby.gameRoom.gameBoard.GetPlayList());
+                                                objPlayList = lobby.gameRoom.gameBoard.GetListOfPlays();
                                                 BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
 
                                                 //Atualiza o próximo jogador a jogar

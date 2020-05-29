@@ -32,14 +32,14 @@ namespace Server.Models
             PlayCounter = 0;
         }
 
-        public void AddGamePlay(int coord_x, int coord_y, Client player)
+        public void AddGamePlay(int coord_x, int coord_y, int playerId)
         {
-            GamePlay gamePlay = new GamePlay(coord_x, coord_y, player);
+            GamePlay gamePlay = new GamePlay(coord_x, coord_y, playerId);
             PlayList.Add(gamePlay);
             PlayCounter++;
         }
         
-        public bool CheckPLayerWins(Client player)
+        public bool CheckPLayerWins(int playerId)
         {
             for (int offset_row = 0; offset_row <= BoardDimension - SequenceSize; offset_row++)
             {
@@ -55,14 +55,14 @@ namespace Server.Models
                         int contarColuna = 0;
                         for (int J = offset_col; J < SequenceSize + offset_col; J++)
                         {
-                            GamePlay newGamePLay = new GamePlay(I, J, player);
+                            GamePlay newGamePLay = new GamePlay(I, J, playerId);
                             //conta as marcaçoes das linhas
-                            if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.playerID == player.playerID)
+                            if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].playerId == playerId)
                             {
                                 contarLinha++;
                             }
                             //conta as marcaçoes das colunas
-                            if (GamePlayExist(J, I) && PlayList[PlayId(J, I)].Player.playerID == player.playerID)
+                            if (GamePlayExist(J, I) && PlayList[PlayId(J, I)].playerId == playerId)
                             {
                                 contarColuna++;
 
@@ -70,7 +70,7 @@ namespace Server.Models
                             //conta as marcações das diagonal direita
                             if (I - offset_row == J - offset_row)
                             {
-                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.playerID == player.playerID)
+                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].playerId == playerId)
                                 {
                                     contarDiagonalDrt++;
                                 }
@@ -78,7 +78,7 @@ namespace Server.Models
                             //conta as marcacoes da diagonal esquerda
                             if (J - offset_col == SequenceSize + offset_row - I - 1)
                             {
-                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].Player.playerID == player.playerID)
+                                if (GamePlayExist(I, J) && PlayList[PlayId(I, J)].playerId == playerId)
                                 {
                                     contarDiagonalEsq++;
                                 }
@@ -157,18 +157,26 @@ namespace Server.Models
         {
             return this.BoardDimension;
         }
-        public byte[,] GetPlayList()
+        //public byte[,] GetPlayList()
+        //{
+        //    byte[,] list = new byte[PlayList.Count, 3];
+        //    for (int i = 0; i < PlayList.Count; i++)
+        //    {
+        //        list[i, 1] = (byte)PlayList[i].Coord_x;
+        //        list[i, 1] = (byte)PlayList[i].Coord_y;
+        //        list[i, 1] = (byte)PlayList[i].playerId;
+        //    }
+        //    return list;
+        //}
+
+        //Método alternativo para o envio da lista de jogadas já realizadas
+        public byte[] GetListOfPlays()
         {
-            byte[,] list = new byte[PlayList.Count, 3];
-            for (int i = 0; i < PlayList.Count; i++)
-            {
-                list[i, 1] = (byte)PlayList[i].Coord_x;
-                list[i, 1] = (byte)PlayList[i].Coord_y;
-                list[i, 1] = (byte)PlayList[i].Player.playerID;
-            }
-            return list;
+            byte[] listOfPlaysEmByte = TSCryptography.ObjectToByteArray(PlayList);
+            return listOfPlaysEmByte;
         }
-            public void RestartBoard()
+
+        public void RestartBoard()
         {
             this.PlayList.Clear();
             this.PlayCounter = 0;

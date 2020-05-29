@@ -146,8 +146,7 @@ namespace JogoDoGaloV1._0
 
                         case ProtocolSICmdType.USER_OPTION_3:
                             //usar para receber jogadas
-                            
-
+                            Invoke(new Action(() => { DrawPlays(symDecipherData); }));
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_4:
@@ -457,6 +456,30 @@ namespace JogoDoGaloV1._0
             boardSizeEmBytes[0] = (byte)boardSize;
 
             EncryptSignAndSendProtocol(boardSizeEmBytes, ProtocolSICmdType.USER_OPTION_6);
+        }
+
+        private void DrawPlays(byte[] playsInByte)
+        {
+            List<GamePlay> listOfGamePlays = (List<GamePlay>)TSCryptography.ByteArrayToObject(playsInByte);
+
+            foreach (GamePlay gamePlay in listOfGamePlays)
+            {
+                string btnName = gamePlay.Coord_x.ToString() + "_" + gamePlay.Coord_y.ToString();
+
+                if (gameBoard.Exists((btn) => btn.Name == btnName))
+                {
+                    Button btnAModificar = gameBoard.Find((x) => x.Name == btnName);
+
+                    if (gamePlay.playerId == playerId)
+                    {
+                        btnAModificar.Text = "X";
+                    }
+                    else
+                    {
+                        btnAModificar.Text = "O";
+                    }
+                }
+            }
         }
     }
 }
