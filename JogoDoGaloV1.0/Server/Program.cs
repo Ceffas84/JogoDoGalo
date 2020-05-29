@@ -388,7 +388,7 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED_TO_START_GAME);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
@@ -461,7 +461,7 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED_TO_START_GAME);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
@@ -482,7 +482,7 @@ namespace Server
                         else
                         {
                             Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
-                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED);
+                            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.NOT_LOGGED_TO_START_GAME);
                             networkStream.Write(packet, 0, packet.Length);
                         }
                         break;
