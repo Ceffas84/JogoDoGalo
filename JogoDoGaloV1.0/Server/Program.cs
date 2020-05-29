@@ -104,7 +104,7 @@ namespace Server
         public void ClientListener(object obj)
         {
             //Recebemos o user que efetuou ligação no servidor
-            Lobby lobbyThread = (Lobby)obj;
+            //Lobby lobbyThread = (Lobby)obj;
             Client client = lobby.listClients[lobby.listClients.Count-1];
 
             //user.PrivateKey = tsCrypto.GetPrivateKey();
@@ -325,7 +325,7 @@ namespace Server
                                                                             //falta tamanho tabuleiro
                         byte[] boardDimension = protocolSI.GetData();
                         byte[] objNextPlayer;
-                        if (!lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
+                        if (lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                             {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {

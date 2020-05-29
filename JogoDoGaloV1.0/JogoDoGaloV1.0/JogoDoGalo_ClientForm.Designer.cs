@@ -259,6 +259,7 @@
             this.btnGameStart.TabIndex = 36;
             this.btnGameStart.Text = "START";
             this.btnGameStart.UseVisualStyleBackColor = true;
+            this.btnGameStart.Click += new System.EventHandler(this.btnGameStart_Click);
             // 
             // gbPlayersBoard
             // 
@@ -270,15 +271,15 @@
             this.gbPlayersBoard.TabStop = false;
             this.gbPlayersBoard.Text = "Jogadores Ligados";
             // 
-            // lbPlayersBoard
+            // lbLoggedClients
             // 
             this.lbLoggedClients.FormattingEnabled = true;
             this.lbLoggedClients.Location = new System.Drawing.Point(6, 19);
-            this.lbLoggedClients.Name = "lbPlayersBoard";
+            this.lbLoggedClients.Name = "lbLoggedClients";
             this.lbLoggedClients.Size = new System.Drawing.Size(258, 121);
             this.lbLoggedClients.TabIndex = 36;
             // 
-            // Form1
+            // JogoDoGalo_ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -291,7 +292,7 @@
             this.Controls.Add(this.tbServer);
             this.Controls.Add(this.tbChat);
             this.Controls.Add(this.button1);
-            this.Name = "Form1";
+            this.Name = "JogoDoGalo_ClientForm";
             this.Text = "Form1";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.gBoxServer.ResumeLayout(false);
