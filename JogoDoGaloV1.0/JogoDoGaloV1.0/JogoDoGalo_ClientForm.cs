@@ -1,4 +1,4 @@
-﻿using EI.SI;
+using EI.SI;
 using Server.Models;
 using System;
 using System.Collections.Generic;
@@ -40,6 +40,8 @@ namespace JogoDoGaloV1._0
 
         private delegate void SafeCallDelegate(string text);
         string msgRecebida;
+
+        private int playerId;
 
         private Thread thread;
 
@@ -115,19 +117,29 @@ namespace JogoDoGaloV1._0
 
                             Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature));
 
+                        case ProtocolSICmdType.USER_OPTION_1:
+                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
+                            {
+                                int boardSize = symDecipherData[0];
+                                playerId = symDecipherData[1];
+                                Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
+                            }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
                         case ProtocolSICmdType.USER_OPTION_1:
 
-                            //if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
-                            //{
-                            //    packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            //    stream.Write(packet, 0, packet.Length);
+                        case ProtocolSICmdType.USER_OPTION_2:
+                            //usar para receber o qual o jogador ativo
+                            if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
+                            {
+                                Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
 
                             //    Invoke(new Action(() => { Console.WriteLine("Assinatura digital confirmada no cliente"); }));
                             //}
+                                int activePlayer = symDecipherData[0];
 
+                            }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
