@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,36 +11,33 @@ namespace Server.Models
     {
         public List<Client> listPlayers;
         public GameBoard gameBoard;
-        public Client playerTurn;
+        public Client activePlayer;
+        private GameState gameState;
+
         public GameRoom()
         {
-            listPlayers = new List<Client>();
-            gameBoard = new GameBoard();
+            this.listPlayers = new List<Client>();
+            //this.gameBoard = new GameBoard(boardDimension);
+            this.activePlayer = new Client();
+            this.gameState = GameState.Standby;
         }
-        //public List<GamePlayer> ListPlayers()
-        //{
-        //    List<GamePlayer> listGamePlayers = new List<GamePlayer>();
-        //    foreach (Client client in listPlayers)
-        //    {
-        //        listGamePlayers.Add(new GamePlayer(listGamePlayers.Count + 1, client.username, GameBoard.Symbol[listGamePlayers.Count + 1]));
-        //    }
-        //    return listGamePlayers;
-        //}
         public bool isPlayerTurn(int idGamePlayer)
         {
-            if (idGamePlayer == this.playerTurn.playerID)
+            if (idGamePlayer == this.activePlayer.playerID)
             {
                 return true;
             }
             return false;
         }
-        public Client GetCurrentPlayer()
+        public byte[] GetCurrentPlayer()
         {
-            return playerTurn;
+            byte[] id = new byte[1];
+            id[0] = (byte) activePlayer.playerID;
+            return id;
         }
         public void SetNextPlayer()
         {
-            playerTurn = listPlayers[playerTurn.playerID];
+            activePlayer = listPlayers[activePlayer.playerID];
         }
         public List<string> GetPlayersList()
         {
@@ -49,6 +47,26 @@ namespace Server.Models
                 list.Add(client.username);
             }
             return list;
+        }
+        public void StartGame(int boardDimension)
+        {
+            this.gameBoard = new GameBoard(boardDimension);
+            this.activePlayer = listPlayers[0];
+            this.gameState = GameState.OnGoing;
+        }
+        public void RestartGame()
+        {
+            this.gameBoard = new GameBoard();
+            this.activePlayer = listPlayers[0];
+        }
+
+        public GameState GetGameState()
+        {
+            return this.gameState;
+        }
+        public void SetGameState(GameState newState)
+        {
+            this.gameState = newState;
         }
     }
 

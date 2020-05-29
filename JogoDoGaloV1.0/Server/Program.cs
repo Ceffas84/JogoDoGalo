@@ -134,10 +134,11 @@ namespace Server
             //  UserOption9           =>
 
             Client gamePlayer;
-            byte[] objGamePlayer;
 
-            GamePlay gamePlay;
+            
             byte[] objGamePLay;
+
+
 
             byte[] objPlayList;
 
@@ -322,30 +323,25 @@ namespace Server
                         //logout
                         break;
                     case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE START GAME
-                                                                            //falta tamanho tabuleiro
-                        byte[] boardDimension = protocolSI.GetData();
-                        byte[] objNextPlayer;
+                        int boardDimension = symDecipherData[0];
                         if (lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                             {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {
                                 if(lobby.gameRoom.listPlayers.Count > 1) //---> Esta comparação devia ser o count == 2
                                 {
-                                    switch (lobby.gameRoom.gameBoard.GetGameState())
+                                    switch (lobby.gameRoom.GetGameState())
                                     {
                                         case GameState.Standby:
+
                                             //1 - Cria um novo GameBoard com os users que estão na GameRoom
-                                            lobby.gameRoom.gameBoard = new GameBoard(3);      
-                                            
+                                            lobby.gameRoom.StartGame(boardDimension);
+
                                             //2 - Broadcast do start game
-                                            boardDimension = symDecipherData;
-                                            BroadCastData(boardDimension, ProtocolSICmdType.USER_OPTION_1);
+                                            BroadCastStarGame(boardDimension);
 
                                             //3 - Broadcast do Next Player                                            
-                                            //objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
-                                            Client nextPlayer = lobby.gameRoom.GetCurrentPlayer();
-                                            objNextPlayer = TSCryptography.ObjectToByteArray(nextPlayer);
-                                            BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
+                                            BroadCastData(lobby.gameRoom.GetCurrentPlayer(), ProtocolSICmdType.USER_OPTION_2);
 
                                             break;
 
@@ -356,17 +352,15 @@ namespace Server
                                             break;
 
                                         case GameState.GameOver:
-                                            //1 - Restart do jogo
-                                            lobby.gameRoom.gameBoard.RestartGame();
+                                            //1 - Cria um novo GameBoard com os users que estão na GameRoom
+                                            lobby.gameRoom.StartGame(boardDimension);
 
-                                            //2 - Broadcast do start game com a dimensao do tabuleiro atual
-                                            boardDimension = new byte[1];
-                                            boardDimension[0] = (byte)lobby.gameRoom.gameBoard.GetBoardDimension();
-                                            BroadCastData(boardDimension, ProtocolSICmdType.USER_OPTION_1);
+                                            //2 - Broadcast do start game
+                                            BroadCastStarGame(boardDimension);
 
-                                            //3 - Broadcast do Next Player                                            
-                                            objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
-                                            BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
+                                            //3 - Broadcast do ActivePLayer                                           
+                                            BroadCastData(lobby.gameRoom.GetCurrentPlayer(), ProtocolSICmdType.USER_OPTION_2);
+
                                             break;
                                     }
                                 }
@@ -401,24 +395,20 @@ namespace Server
                         {
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                             {
-                                switch (lobby.gameRoom.gameBoard.GetGameState())
+                                switch (lobby.gameRoom.GetGameState())
                                 {
-                                    //case GameState.Standby:
-                                    //    Console.WriteLine("Game as not yeat started!");
-                                    //    packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.GAME_NOT_YET_STARTED);
-                                    //    networkStream.Write(packet, 0, packet.Length);
-                                    //    break;
                                     case GameState.OnGoing:
-                                        
+
                                         //1 - Verifica se a jogada recebida é válida
-                                        gamePlay = (GamePlay)TSCryptography.ByteArrayToObject(symDecipherData);
-                                        if(!lobby.gameRoom.gameBoard.GamePlayExist(gamePlay.Coord_x, gamePlay.Coord_y))
+                                        byte[] gamePlay = new byte[2];                                       
+                                        gamePlay = (byte[])TSCryptography.ByteArrayToObject(symDecipherData);
+                                        if(!lobby.gameRoom.gameBoard.GamePlayExist(gamePlay[0], gamePlay[1]))
                                         {
                                             //Adiciona a jogada
-                                            lobby.gameRoom.gameBoard.AddGamePlay(gamePlay);
+                                            lobby.gameRoom.gameBoard.AddGamePlay(gamePlay[0], gamePlay[1], client);
 
                                             //Verifica se o jogador Ganhou
-                                            if (!lobby.gameRoom.gameBoard.CheckPLayerWins(gamePlay.Player))
+                                            if (!lobby.gameRoom.gameBoard.CheckPLayerWins(client))
                                             {
                                                 //Broadcast da jogada
                                                 objPlayList = TSCryptography.ObjectToByteArray(lobby.gameRoom.gameBoard.GetPlayList());
@@ -428,18 +418,18 @@ namespace Server
                                                 lobby.gameRoom.SetNextPlayer();
 
                                                 //Broadcast do Next Player                                            
-                                                objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
-                                                BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
+                                                //3 - Broadcast do ActivePLayer                                           
+                                                BroadCastData(lobby.gameRoom.GetCurrentPlayer(), ProtocolSICmdType.USER_OPTION_2);
                                             }
                                             else
                                             {
                                                 //Atualiza o estado do jogo para GameOver
-                                                lobby.gameRoom.gameBoard.SetGameState(GameState.GameOver)
+                                                lobby.gameRoom.SetGameState(GameState.GameOver)
 
 ;                                               //Faz BroadCast do GameOver
-                                                gamePlayer = lobby.gameRoom.GetCurrentPlayer();
-                                                objGamePlayer = TSCryptography.ObjectToByteArray(gamePlayer);
-                                                BroadCastData(objGamePlayer, ProtocolSICmdType.USER_OPTION_4);
+                                                //gamePlayer = lobby.gameRoom.GetCurrentPlayer();
+                                                //objGamePlayer = TSCryptography.ObjectToByteArray(gamePlayer);
+                                                //BroadCastData(objGamePlayer, ProtocolSICmdType.USER_OPTION_4);
                                             }
                                         }
                                         else
@@ -674,6 +664,21 @@ namespace Server
                 
                 EncryptSignAndSendProtocol(data, protocolSICmdType, streamBroadCast, tsCryptoBroadCast);
                 Console.WriteLine("Client_{0}: Enviado Procolo => {1}", player.username, protocolSICmdType);
+            }
+        }
+        private void BroadCastStarGame(int boardDimension)
+        {
+            foreach (Client player in lobby.gameRoom.listPlayers)
+            {
+                TSCryptography tsCryptoBroadCast = new TSCryptography(player.IV, player.SymKey);
+                NetworkStream streamBroadCast = player.TcpClient.GetStream();
+
+                byte[] startArray = new byte[2];
+                startArray[0] = (byte)boardDimension;
+                startArray[1] = (byte)player.playerID;
+
+                EncryptSignAndSendProtocol(startArray, ProtocolSICmdType.USER_OPTION_1, streamBroadCast, tsCryptoBroadCast);
+                Console.WriteLine("Player: {0} : Enviado Procolo => USER_OPTION_1", player.username);
             }
         }
         private List<Client> ListClientsGameRoom()
