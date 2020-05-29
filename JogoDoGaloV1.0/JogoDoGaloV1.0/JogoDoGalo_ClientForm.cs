@@ -143,6 +143,17 @@ namespace JogoDoGaloV1._0
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
+
+                        case ProtocolSICmdType.USER_OPTION_3:
+                            //usar para receber jogadas
+                            
+
+                            break;
+
+                        case ProtocolSICmdType.USER_OPTION_4:
+                            //usar para receber Game Over
+                            break;
+
                         case ProtocolSICmdType.USER_OPTION_5:
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, serverPublicKey))
                             {
@@ -158,49 +169,11 @@ namespace JogoDoGaloV1._0
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
                             break;
-                        //******************   ABRETURA DE COMUNICAÇÃO ENCRIPTADA SIMÉTRICA   ******************
-                        case ProtocolSICmdType.PUBLIC_KEY:
-                            //Recebe a public key do client
-                            serverPublicKey = protocolSI.GetStringFromData();
 
-                            //Envia um acknoledged
-                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
-                            networkStream.Write(packet, 0, packet.Length);
-                            break;
-                        case ProtocolSICmdType.SECRET_KEY:
-                            //Recebe a Chave Simétrica do ProtocolSI
-                            byte[] encryptedSymKey = protocolSI.GetData();
-
-                            //Desencripta e atribui a key ao objecto aes
-                            byte[] decryptedSymKey = tsCrypto.RsaDecryption(encryptedSymKey, privateKey);
-                            tsCrypto.SetAesSymKey(decryptedSymKey);
-
-                            SendAcknowledged(protocolSI, stream);
-                            Invoke(new Action(() => { Console.WriteLine("Recebido SymKey: {0}", Convert.ToBase64String(decryptedSymKey)); }));
-                            break;
-                        case ProtocolSICmdType.IV:
-                            //Recebe o Vetor de Inicialização do ProtocolSI
-                            byte[] ivEncrypted = protocolSI.GetData();
-
-                            //Desencripta e atribui o iv ao objecto aes
-                            byte[] decryptedIV = tsCrypto.RsaDecryption(ivEncrypted, tsCrypto.GetPrivateKey());
-                            tsCrypto.SetAesIV(decryptedIV);
-
-                            SendAcknowledged(protocolSI, stream);
-                            Invoke(new Action(() => { Console.WriteLine("Recebido IV: {0}", Convert.ToBase64String(decryptedIV)); }));
-                            break;
-
-                        //case ProtocolSICmdType.ACK:
-                        //    Acknoledged = true;
-                        //    break;
                         case ProtocolSICmdType.USER_OPTION_8:
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
                                 msgRecebida = Encoding.UTF8.GetString(symDecipherData);
-
-                                //Invoke(new Action(() => { rtbMensagens.AppendText(msgRecebida + Environment.NewLine); }));
-                                //var d = new SafeCallDelegate((texto) => { rtbMensagens.AppendText(texto); });
-                                //rtbMensagens.Invoke(d, new object[] { msgRecebida });
 
                                 safeCallDelegate = new SafeCallDelegate((message) => { receiveChatMessage(message); });
                                 rtbMensagens.Invoke(safeCallDelegate, new object[] { msgRecebida });
@@ -212,20 +185,44 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.USER_OPTION_9:
                             int resultCode = protocolSI.GetIntFromData();
 
-                            //safeCallDelegate = new SafeCallDelegate((resultCode1) => { receiveChatMessage(resultCode1); });
-                            //rtbMensagens.Invoke(safeCallDelegate, new object[] { resultCode });
-
-                            
-
                             Invoke(new Action(() => { checkServerResponse(resultCode); }));
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
+                            break;
 
-                            //safeCallDelegate = new SafeCallDelegate((code) => { checkServerResponse(code); });
-                            //checkServerResponse( .Invoke(safeCallDelegate, new object[] { resultCode });
+                        //******************   ABRETURA DE COMUNICAÇÃO ENCRIPTADA SIMÉTRICA   ******************
+                        case ProtocolSICmdType.PUBLIC_KEY:
+                            //Recebe a public key do client
+                            serverPublicKey = protocolSI.GetStringFromData();
 
+                            //Envia um acknoledged
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            networkStream.Write(packet, 0, packet.Length);
+                            break;
 
+                        case ProtocolSICmdType.SECRET_KEY:
+                            //Recebe a Chave Simétrica do ProtocolSI
+                            byte[] encryptedSymKey = protocolSI.GetData();
+
+                            //Desencripta e atribui a key ao objecto aes
+                            byte[] decryptedSymKey = tsCrypto.RsaDecryption(encryptedSymKey, privateKey);
+                            tsCrypto.SetAesSymKey(decryptedSymKey);
+
+                            SendAcknowledged(protocolSI, stream);
+                            Invoke(new Action(() => { Console.WriteLine("Recebido SymKey: {0}", Convert.ToBase64String(decryptedSymKey)); }));
+                            break;
+
+                        case ProtocolSICmdType.IV:
+                            //Recebe o Vetor de Inicialização do ProtocolSI
+                            byte[] ivEncrypted = protocolSI.GetData();
+
+                            //Desencripta e atribui o iv ao objecto aes
+                            byte[] decryptedIV = tsCrypto.RsaDecryption(ivEncrypted, tsCrypto.GetPrivateKey());
+                            tsCrypto.SetAesIV(decryptedIV);
+
+                            SendAcknowledged(protocolSI, stream);
+                            Invoke(new Action(() => { Console.WriteLine("Recebido IV: {0}", Convert.ToBase64String(decryptedIV)); }));
                             break;
                     }
                 }
@@ -237,8 +234,6 @@ namespace JogoDoGaloV1._0
             tcpClient.Close();
             stream.Close();
         }
-
-        
 
         private void checkServerResponse(int resultCode)
         {
@@ -387,20 +382,13 @@ namespace JogoDoGaloV1._0
             //Envia a mensagem encriptada, a assinatura digital e o Protocol a usar para lidar com a informação recebida
             EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_8);
         }
+
         private void receiveChatMessage(string message)
         {
             message = message + Environment.NewLine;
             rtbMensagens.AppendText(message);
         }
-        private void receiveUpdatePlayers(List<string> gameRoomLoggedPlayers)
-        {
-            lbLoggedClients.Items.Clear();
-            foreach (string client in gameRoomLoggedPlayers)
-            {
-                lbLoggedClients.Items.Add(client);
-            }
-        }
-        
+
         private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
         {
             gameBoard = new List<Button>();
@@ -444,6 +432,12 @@ namespace JogoDoGaloV1._0
         {
             Button clickedButton = sender as Button;
             List<int> coord = GetClickedButton(clickedButton);
+
+            byte[] coordsEmByte = new byte[2];
+            coordsEmByte[0] = (byte)coord[0];
+            coordsEmByte[1] = (byte)coord[1];
+
+            EncryptSignAndSendProtocol(coordsEmByte, ProtocolSICmdType.USER_OPTION_7);
         }
 
         private List<int> GetClickedButton(Button clickedButton)
