@@ -41,7 +41,7 @@ namespace Server.Models
             winner[0] = GetCurrentPlayer()[0];
             byte[] winnerUsername = new byte[activePlayer.username.Length];
             winnerUsername = Encoding.UTF8.GetBytes(activePlayer.username);
-            winner.CopyTo(winner, 1);
+            winnerUsername.CopyTo(winner, 1);
             return winner;
         }
         public void SetNextPlayer()

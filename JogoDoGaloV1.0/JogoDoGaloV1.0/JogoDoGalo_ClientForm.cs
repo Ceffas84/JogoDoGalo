@@ -125,7 +125,7 @@ namespace JogoDoGaloV1._0
                             {
                                 int boardSize = symDecipherData[0];
                                 playerId = symDecipherData[1];
-                                Invoke(new Action(() => { DesenharTabuleiro(100, 50, 400, boardSize); }));
+                                Invoke(new Action(() => { DesenharTabuleiro(50, 100, 400, boardSize); }));
                             }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
@@ -151,6 +151,7 @@ namespace JogoDoGaloV1._0
 
                         case ProtocolSICmdType.USER_OPTION_4:
                             //usar para receber Game Over
+                            Invoke(new Action(() => { ShowWinner(symDecipherData); }));
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_5:
@@ -232,6 +233,24 @@ namespace JogoDoGaloV1._0
             }
             tcpClient.Close();
             stream.Close();
+        }
+
+        private void ShowWinner(byte[] symDecipherData)
+        {
+            int playerId = symDecipherData[0];
+            byte[] winnerNameArray = new byte[symDecipherData.Length - 1];
+            Array.Copy(symDecipherData, 1, winnerNameArray, 0, symDecipherData.Length - 1);
+
+            string winnerName = Encoding.UTF8.GetString(winnerNameArray);
+
+            if(this.playerId == playerId)
+            {
+                gameDisplay.Text = string.Format("Parabéns, {0}! Ganhaste!", winnerName);
+            }
+            else
+            {
+                gameDisplay.Text = string.Format("Ups! Parece que o(a) {0} ganhou esta partida.", winnerName);
+            }
         }
 
         private void checkServerResponse(int resultCode)
