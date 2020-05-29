@@ -342,7 +342,9 @@ namespace Server
                                             BroadCastData(boardDimension, ProtocolSICmdType.USER_OPTION_1);
 
                                             //3 - Broadcast do Next Player                                            
-                                            objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
+                                            //objNextPlayer = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetCurrentPlayer());
+                                            Client nextPlayer = lobby.gameRoom.GetCurrentPlayer();
+                                            objNextPlayer = TSCryptography.ObjectToByteArray(nextPlayer);
                                             BroadCastData(objNextPlayer, ProtocolSICmdType.USER_OPTION_2);
 
                                             break;
