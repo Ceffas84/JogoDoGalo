@@ -14,10 +14,14 @@ namespace Server.Models
         private int MaxNumberPlay;
         private List<GamePlay> PlayList;
         private int PlayCounter;
-        private GameState gameState;
+
         public GameBoard()
         {
-            this.gameState = GameState.Standby;
+            this.BoardDimension = 3;
+            this.SequenceSize = SequenceSizeCalc(this.BoardDimension);
+            this.MaxNumberPlay = SequenceSize * SequenceSize;
+            this.PlayList = new List<GamePlay>();
+            this.PlayCounter = 0;
         }
         public GameBoard(int boardDimension)
         {
@@ -26,12 +30,8 @@ namespace Server.Models
             MaxNumberPlay = SequenceSize * SequenceSize;
             PlayList = new List<GamePlay>();
             PlayCounter = 0;
-            this.gameState = GameState.OnGoing;
         }
-        public void AddGamePlay(GamePlay gamePlay)
-        {
-            PlayList.Add(gamePlay);
-        }
+
         public void AddGamePlay(int coord_x, int coord_y, Client player)
         {
             GamePlay gamePlay = new GamePlay(coord_x, coord_y, player);
@@ -153,30 +153,20 @@ namespace Server.Models
             }
             return sequenceSize;
         }
-        public void GameStart()
-        {
-            this.gameState = GameState.OnGoing;
-        }
-        public void RestartGame()
-        {
-            this.PlayCounter = 0;
-            this.gameState = GameState.OnGoing;
-        }
-        public GameState GetGameState()
-        {
-            return this.gameState;
-        }
-        public void SetGameState(GameState newState)
-        {
-            this.gameState = newState;
-        }
         public int GetBoardDimension()
         {
             return this.BoardDimension;
         }
         public List<GamePlay> GetPlayList()
         {
+
+            // array com as jogadas
             return this.PlayList;
+        }
+        public void RestartBoard()
+        {
+            this.PlayList.Clear();
+            this.PlayCounter = 0;
         }
     }
 }
