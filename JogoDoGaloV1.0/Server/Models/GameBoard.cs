@@ -9,21 +9,11 @@ namespace Server.Models
 {
     public class GameBoard
     {
-        public static char[] Symbol = new char[5] { 'X', 'O', '?', '»', 'T' };
         private int BoardDimension;
         private int SequenceSize;
         private int MaxNumberPlay;
         private List<GamePlay> PlayList;
         private int PlayCounter;
-
-        public GameBoard()
-        {
-            this.BoardDimension = 3;
-            this.SequenceSize = SequenceSizeCalc(this.BoardDimension);
-            this.MaxNumberPlay = SequenceSize * SequenceSize;
-            this.PlayList = new List<GamePlay>();
-            this.PlayCounter = 0;
-        }
         public GameBoard(int boardDimension)
         {
             BoardDimension = boardDimension;
@@ -32,14 +22,12 @@ namespace Server.Models
             PlayList = new List<GamePlay>();
             PlayCounter = 0;
         }
-
         public void AddGamePlay(int coord_x, int coord_y, int playerId)
         {
             GamePlay gamePlay = new GamePlay(coord_x, coord_y, playerId);
             PlayList.Add(gamePlay);
             PlayCounter++;
         }
-        
         public bool CheckPLayerWins(int playerId)
         {
             for (int offset_row = 0; offset_row <= BoardDimension - SequenceSize; offset_row++)
@@ -131,25 +119,16 @@ namespace Server.Models
                     sequenceSize = 3;
                     break;
                 case 4:
-                    sequenceSize = 4;
-                    break;
                 case 5:
-                    sequenceSize = 4;
-                    break;
                 case 6:
                     sequenceSize = 4;
                     break;
                 case 7:
-                    sequenceSize = 5;
-                    break;
                 case 8:
                     sequenceSize = 5;
                     break;
                 case 9:
                     sequenceSize = 6;
-                    break;
-                default:
-                    sequenceSize = -1;
                     break;
             }
             return sequenceSize;
@@ -158,19 +137,6 @@ namespace Server.Models
         {
             return this.BoardDimension;
         }
-        //public byte[,] GetPlayList()
-        //{
-        //    byte[,] list = new byte[PlayList.Count, 3];
-        //    for (int i = 0; i < PlayList.Count; i++)
-        //    {
-        //        list[i, 1] = (byte)PlayList[i].Coord_x;
-        //        list[i, 1] = (byte)PlayList[i].Coord_y;
-        //        list[i, 1] = (byte)PlayList[i].playerId;
-        //    }
-        //    return list;
-        //}
-
-        //Método alternativo para o envio da lista de jogadas já realizadas
         public byte[] GetListOfPlays()
         {
             byte[] listOfPlaysEmByte = TSCryptography.ObjectToByteArray(PlayList);

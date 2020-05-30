@@ -13,7 +13,6 @@ namespace Server.Models
         public GameBoard gameBoard;
         public Client activePlayer;
         private GameState gameState;
-
         public GameRoom()
         {
             this.listPlayers = new List<Client>();
@@ -64,12 +63,6 @@ namespace Server.Models
             this.activePlayer = listPlayers[0];
             this.gameState = GameState.OnGoing;
         }
-        public void RestartGame()
-        {
-            this.gameBoard = new GameBoard();
-            this.activePlayer = listPlayers[0];
-        }
-
         public GameState GetGameState()
         {
             return this.gameState;
