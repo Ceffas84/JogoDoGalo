@@ -3,6 +3,7 @@ using Server.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -21,6 +22,7 @@ namespace Server
         private static Lobby lobby = new Lobby();
         public static string SERVERPUBLICKEY;
         public static string SERVERPRIVATEKEY;
+        public static string CHATLOGFILENAME = "chatLog.txt";
         static void Main(string[] args)
         {
             //declaração das variáveis
@@ -70,7 +72,6 @@ namespace Server
         private Authentication Auth;
         private ProtocolSI protocolSI;
         private NetworkStream networkStream;
-        //private string ServerPrivateKey;
 
         private byte[] digitalSignature;
         private byte[] symDecipherData;
@@ -78,6 +79,7 @@ namespace Server
         private byte[] encryptedData;
         private byte[] decryptedData;
         private byte[] packet;
+
         public ClientHandler(Lobby lobby)
         {
             this.lobby = lobby;
@@ -85,6 +87,7 @@ namespace Server
             this.Auth = new Authentication();
             this.protocolSI = new ProtocolSI();
         }
+
         public void Handle()
         {
             //ServerPublicKey = serverPublicKey;
@@ -93,13 +96,11 @@ namespace Server
             //thread.Start(this.gameRoom.listUsers[gameRoom.listUsers.Count - 1]);
             thread.Start(this.lobby);
         }
+
         public void ClientListener(object obj)
         {
             //Recebemos o user que efetuou ligação no servidor
-            //Lobby lobbyThread = (Lobby)obj;
             Client client = lobby.listClients[lobby.listClients.Count-1];
-
-            //user.PrivateKey = tsCrypto.GetPrivateKey();
 
             //Atribuimos as credencias de criptografia simétrica ao utilizador
             client.SymKey = tsCrypto.GetSymKey();
@@ -125,13 +126,6 @@ namespace Server
             //  UserOption8           => Receção de mensagens do Chat
             //  UserOption9           =>
 
-            Client gamePlayer;
-
-            
-            byte[] objGamePLay;
-
-
-
             byte[] objPlayList;
 
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
@@ -150,6 +144,7 @@ namespace Server
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
                         break;
+
                     case ProtocolSICmdType.DIGITAL_SIGNATURE:               //RECEÇÃO DA ASSINATURA DIGITAL
                         this.digitalSignature = protocolSI.GetData();                     
 
@@ -159,13 +154,11 @@ namespace Server
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();
                         break;
-                    case ProtocolSICmdType.USER_OPTION_1:                   //VALIDAÇÃO DO USERNAME ENVIADA VS ASSINATURA DIGITAL
 
+                    case ProtocolSICmdType.USER_OPTION_1:                   //VALIDAÇÃO DO USERNAME ENVIADA VS ASSINATURA DIGITAL
                         if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                         {
-
                             client.username = Encoding.UTF8.GetString(symDecipherData);
-                            //Console.WriteLine(client.username);
                         }
                         else
                         {
@@ -180,7 +173,6 @@ namespace Server
                         break;
 
                     case ProtocolSICmdType.USER_OPTION_2:                   //VALIDAÇÃO DA PASSWORD ENVIADA VS ASSINATURA DIGITAL
-
                         if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
                         {
                             client.password = symDecipherData;
@@ -635,6 +627,9 @@ namespace Server
 
         private void BroadCastChat(byte[] data, Client clientWhoSentMsg)
         {
+            string logEntry = string.Format(("{0} -> {1}: {2} " + Environment.NewLine), DateTime.Now.ToString(), clientWhoSentMsg.username, Encoding.UTF8.GetString(data));
+            File.AppendAllText(Program.CHATLOGFILENAME, logEntry);
+
             foreach (Client player in lobby.gameRoom.listPlayers)
             {
                 TSCryptography tsCryptoBroadCast = new TSCryptography(player.IV, player.SymKey);
@@ -649,7 +644,7 @@ namespace Server
                 }
                 else
                 {
-                    str_player_plus_message = "Jogador " + clientWhoSentMsg.ClientID + ": " + Encoding.UTF8.GetString(data);
+                    str_player_plus_message = clientWhoSentMsg.username + ": " + Encoding.UTF8.GetString(data);
                     player_plus_message = Encoding.UTF8.GetBytes(str_player_plus_message);
                 }
 
