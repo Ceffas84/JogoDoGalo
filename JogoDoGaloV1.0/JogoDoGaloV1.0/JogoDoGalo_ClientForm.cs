@@ -25,7 +25,6 @@ namespace JogoDoGaloV1._0
 
         private TSCryptography tsCrypto;
         private ProtocolSI protocolSI;
-        TSProtocol tsProtocol;
 
         private string publicKey;
         private string privateKey;
@@ -160,13 +159,15 @@ namespace JogoDoGaloV1._0
                         case ProtocolSICmdType.USER_OPTION_5:
                             if (tsCrypto.VerifyData(symDecipherData, digitalSignature, serverPublicKey))
                             {
-                                Invoke(new Action(() => { lbLoggedClients.Items.Clear(); }));
+                                //Invoke(new Action(() => { lbLoggedClients.Items.Clear(); }));
                                 List<string> gameRoomLoggedPlayers = (List<string>)TSCryptography.ByteArrayToObject(symDecipherData);
-                                foreach (string username in gameRoomLoggedPlayers)
-                                {
-                                    safeCallDelegate = new SafeCallDelegate((user) => { lbLoggedClients.Items.Add(user); });
-                                    lbLoggedClients.Invoke(safeCallDelegate, new object[] { username });
-                                }
+                                //foreach (string username in gameRoomLoggedPlayers)
+                                //{
+                                //    safeCallDelegate = new SafeCallDelegate((user) => { lbLoggedClients.Items.Add(user); });
+                                //    lbLoggedClients.Invoke(safeCallDelegate, new object[] { username });
+                                //}
+
+                                Invoke(new Action(() => { UpdateLoggedUsers(gameRoomLoggedPlayers); }));
                             }
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
@@ -243,6 +244,24 @@ namespace JogoDoGaloV1._0
             stream.Close();
         }
 
+        private void UpdateLoggedUsers(List<string> gameRoomLoggedPlayers)
+        {
+            lbLoggedClients.Items.Clear();
+            //List<string> gameRoomLoggedPlayers = (List<string>)TSCryptography.ByteArrayToObject(symDecipherData);
+            foreach (string username in gameRoomLoggedPlayers)
+            {
+                lbLoggedClients.Items.Add(username);
+            }
+            if (gameRoomLoggedPlayers.Count < 2)
+            {
+                gameDisplay.Text = "Aguarde que se ligue outro jogador na sala!";
+            }
+            else
+            {
+                gameDisplay.Text= "Estão dois jogadores na sala! Já podem começar comunicar pelo chat e iniciar um jogo!!!";
+            }         
+        }
+
         private void ShowGameOverByDraw()
         {
             gameDisplay.Text = "Este foi renhido! Terminou empatado.";
@@ -268,7 +287,6 @@ namespace JogoDoGaloV1._0
                 gameDisplay.Text = string.Format("Ups! Parece que o(a) {0} ganhou esta partida.", winnerName);
                 gameDisplay.BackColor = Color.Red;
             }
-
             nudBoardDimension.Enabled = true;
         }
 
