@@ -69,7 +69,6 @@
     <Compile Include="Models\Lobby.cs" />
     <Compile Include="Models\GameState.cs" />
     <Compile Include="Models\ServerResponse.cs" />
-    <Compile Include="Models\TSProtocol.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\TSCryptography.cs" />
     <Compile Include="Program.cs" />
