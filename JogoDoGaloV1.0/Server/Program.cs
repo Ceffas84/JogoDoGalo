@@ -38,33 +38,34 @@ namespace Server
             Console.WriteLine("SERVER IS READY" + Environment.NewLine);
             while (true)
             {
-                //Client client = new Client();
-                //client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
+                try
+                {
+                    Client client = new Client();
 
-                //gameRoom.listUsers.Add(client);
-                //Console.WriteLine("Client_{0} added to the game room!" + Environment.NewLine, client.ClientID);
-                //client.ClientID = gameRoom.listUsers.Count();
-                //Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
+                    //aceitar ligações
+                    client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
 
-                ////Lança uma thread com um listner
-                //ClientHandler clientHandler = new ClientHandler(gameRoom);
-                //clientHandler.Handle();
+                    lobby.listClients.Add(client);
+                    client.ClientID = lobby.listClients.Count();
+                    Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
+                    Console.WriteLine("Client_{0} added to the lobby!" + Environment.NewLine, client.ClientID);
 
-                Client client = new Client();
-
-            
-                        //aceitar ligações
-                        client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
-
-                        lobby.listClients.Add(client);
-                        client.ClientID = lobby.listClients.Count();
-                        Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
-                        Console.WriteLine("Client_{0} added to the game room!" + Environment.NewLine, client.ClientID);
-
-                        //Lança uma thread com um listner
-                        ClientHandler clientHandler = new ClientHandler(lobby);
-                        clientHandler.Handle();
-                
+                    //Lança uma thread com um listner
+                    ClientHandler clientHandler = new ClientHandler(lobby);
+                    clientHandler.Handle();
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine("Erro => " + ex.Message);
+                }
+                finally
+                {
+                    Console.WriteLine("A desligar ligações");
+                    if (tcpListener != null)
+                    {
+                        tcpListener.Stop();
+                    }
+                }
             }
         }
     }
@@ -78,7 +79,6 @@ namespace Server
         private ProtocolSI protocolSI;
         private NetworkStream networkStream;
         //private string ServerPrivateKey;
-
 
         private byte[] digitalSignature;
         private byte[] symDecipherData;
@@ -402,7 +402,7 @@ namespace Server
                                         int coord_x = symDecipherData[0];
                                         int coord_y = symDecipherData[1];
 
-                                        //1 - Verifica se a jogada recebida é válida
+                                        //Verifica se a jogada recebida é válida
                                         if (!lobby.gameRoom.gameBoard.GamePlayExist(coord_x, coord_y))
                                         {
                                             //Adiciona a jogada
@@ -418,15 +418,18 @@ namespace Server
                                                 //Verifica se o numero de jogadas terminou
                                                 if (lobby.gameRoom.gameBoard.IsNumberPlaysOver())
                                                 {
-                                                    //Brodcast GameOver - Draw
+                                                    decryptedData[0] = 0;
+                                                    BroadCastData(decryptedData, ProtocolSICmdType.USER_OPTION_6);
+
+                                                    //Atualiza o estado do jogo para GameOver
+                                                    lobby.gameRoom.SetGameState(GameState.GameOver);
                                                 }
                                                 else
                                                 {
                                                     //Atualiza o próximo jogador a jogar
                                                     lobby.gameRoom.SetNextPlayer();
 
-                                                    //Broadcast do Next Player                                            
-                                                    //3 - Broadcast do ActivePLayer                                           
+                                                    //Broadcast do ActivePLayer                                           
                                                     BroadCastData(lobby.gameRoom.GetCurrentPlayer(), ProtocolSICmdType.USER_OPTION_2);
                                                 }
                                             }
@@ -697,6 +700,20 @@ namespace Server
             }
             return listPlayers;
         }
-        
+
+        private void SendAlert(string consoleMessage, ServerResponse serverResponse)
+        {
+            Console.WriteLine(consoleMessage);
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)serverResponse);
+            networkStream.Write(packet, 0, packet.Length);
+        }
+
+        private void SendAcknoledged()
+        {
+            byte[] packet = protocolSI.Make(ProtocolSICmdType.ACK);
+            networkStream.Write(packet, 0, packet.Length);
+            networkStream.Flush();
+        }
+
     }
 }
