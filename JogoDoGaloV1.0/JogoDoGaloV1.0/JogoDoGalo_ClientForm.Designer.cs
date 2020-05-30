@@ -1,4 +1,4 @@
-namespace JogoDoGaloV1._0
+﻿namespace JogoDoGaloV1._0
 {
     partial class JogoDoGalo_ClientForm
     {

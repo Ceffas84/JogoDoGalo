@@ -397,6 +397,8 @@ namespace JogoDoGaloV1._0
 
             EncryptSignAndSendProtocol(Encoding.UTF8.GetBytes(tbPassword.Text), ProtocolSICmdType.USER_OPTION_2);
 
+            tbPassword.Clear();
+
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_3);
             networkStream.Write(packet, 0, packet.Length);
             Thread.Sleep(BREAK);  //???
@@ -408,6 +410,8 @@ namespace JogoDoGaloV1._0
 
             EncryptSignAndSendProtocol(Encoding.UTF8.GetBytes(tbPassword.Text), ProtocolSICmdType.USER_OPTION_2);
 
+            tbPassword.Clear();
+
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_4);
             networkStream.Write(packet, 0, packet.Length);
             Thread.Sleep(BREAK);
@@ -416,7 +420,8 @@ namespace JogoDoGaloV1._0
         private void bt_EnviaMensagem_Click(object sender, EventArgs e)
         {
             byte[] decryptedData = Encoding.UTF8.GetBytes(tbEscreverMensagem.Text);
-
+            tbEscreverMensagem.Clear();
+            
             //Envia a mensagem encriptada, a assinatura digital e o Protocol a usar para lidar com a informação recebida
             EncryptSignAndSendProtocol(decryptedData, ProtocolSICmdType.USER_OPTION_8);
         }
