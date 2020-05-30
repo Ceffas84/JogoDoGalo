@@ -58,14 +58,6 @@ namespace Server
                 {
                     Console.WriteLine("Erro => " + ex.Message);
                 }
-                finally
-                {
-                    Console.WriteLine("A desligar ligações");
-                    if (tcpListener != null)
-                    {
-                        tcpListener.Stop();
-                    }
-                }
             }
         }
     }
@@ -704,6 +696,12 @@ namespace Server
         private void SendAlert(string consoleMessage, ServerResponse serverResponse)
         {
             Console.WriteLine(consoleMessage);
+            packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)serverResponse);
+            networkStream.Write(packet, 0, packet.Length);
+        }
+        private void SendAlert(string consoleMessage, string str1, ServerResponse serverResponse)
+        {
+            Console.WriteLine(consoleMessage, str1);
             packet = protocolSI.Make(ProtocolSICmdType.USER_OPTION_9, (int)serverResponse);
             networkStream.Write(packet, 0, packet.Length);
         }
