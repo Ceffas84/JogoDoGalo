@@ -255,6 +255,7 @@ namespace JogoDoGaloV1._0
             if (gameRoomLoggedPlayers.Count < 2)
             {
                 gameDisplay.Text = "Aguarde que se ligue outro jogador na sala!";
+                gameDisplay.BackColor = SystemColors.ActiveCaption;
             }
             else
             {
@@ -593,6 +594,7 @@ namespace JogoDoGaloV1._0
                     if (gamePlay.playerId == playerId)
                     {
                         btnAModificar.Text = dupSymbol.Text;
+                        btnAModificar.BackColor = Color.Honeydew;
                     }
                     else
                     {
