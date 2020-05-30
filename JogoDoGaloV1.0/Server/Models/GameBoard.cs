@@ -18,7 +18,7 @@ namespace Server.Models
         {
             BoardDimension = boardDimension;
             SequenceSize = SequenceSizeCalc(boardDimension);
-            MaxNumberPlay = SequenceSize * SequenceSize;
+            MaxNumberPlay = boardDimension * boardDimension;
             PlayList = new List<GamePlay>();
             PlayCounter = 0;
         }
