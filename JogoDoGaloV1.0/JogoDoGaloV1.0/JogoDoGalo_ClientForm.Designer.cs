@@ -52,10 +52,11 @@
             this.lbLoggedClients = new System.Windows.Forms.ListBox();
             this.gbBoardDimension = new System.Windows.Forms.GroupBox();
             this.nudBoardDimension = new System.Windows.Forms.NumericUpDown();
-            this.label4 = new System.Windows.Forms.Label();
+            this.lbBoasVindas = new System.Windows.Forms.Label();
             this.dupSymbol = new System.Windows.Forms.DomainUpDown();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.button3 = new System.Windows.Forms.Button();
+            this.lbWinningCondition = new System.Windows.Forms.Label();
             this.gBoxServer.SuspendLayout();
             this.gBoxChat.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -105,7 +106,7 @@
             // btnSignup
             // 
             this.btnSignup.Location = new System.Drawing.Point(169, 91);
-            this.btnSignup.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnSignup.Margin = new System.Windows.Forms.Padding(2);
             this.btnSignup.Name = "btnSignup";
             this.btnSignup.Size = new System.Drawing.Size(74, 29);
             this.btnSignup.TabIndex = 26;
@@ -116,7 +117,7 @@
             // btnLogin
             // 
             this.btnLogin.Location = new System.Drawing.Point(70, 91);
-            this.btnLogin.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnLogin.Margin = new System.Windows.Forms.Padding(2);
             this.btnLogin.Name = "btnLogin";
             this.btnLogin.Size = new System.Drawing.Size(74, 29);
             this.btnLogin.TabIndex = 25;
@@ -157,7 +158,7 @@
             // tbServidor
             // 
             this.tbServidor.Location = new System.Drawing.Point(70, 19);
-            this.tbServidor.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tbServidor.Margin = new System.Windows.Forms.Padding(2);
             this.tbServidor.Name = "tbServidor";
             this.tbServidor.Size = new System.Drawing.Size(173, 20);
             this.tbServidor.TabIndex = 22;
@@ -166,7 +167,7 @@
             // tbUsername
             // 
             this.tbUsername.Location = new System.Drawing.Point(70, 43);
-            this.tbUsername.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tbUsername.Margin = new System.Windows.Forms.Padding(2);
             this.tbUsername.Name = "tbUsername";
             this.tbUsername.Size = new System.Drawing.Size(173, 20);
             this.tbUsername.TabIndex = 23;
@@ -174,7 +175,7 @@
             // tbPassword
             // 
             this.tbPassword.Location = new System.Drawing.Point(70, 67);
-            this.tbPassword.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tbPassword.Margin = new System.Windows.Forms.Padding(2);
             this.tbPassword.Name = "tbPassword";
             this.tbPassword.Size = new System.Drawing.Size(173, 20);
             this.tbPassword.TabIndex = 24;
@@ -204,7 +205,7 @@
             // tbEscreverMensagem
             // 
             this.tbEscreverMensagem.Location = new System.Drawing.Point(8, 259);
-            this.tbEscreverMensagem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tbEscreverMensagem.Margin = new System.Windows.Forms.Padding(2);
             this.tbEscreverMensagem.Multiline = true;
             this.tbEscreverMensagem.Name = "tbEscreverMensagem";
             this.tbEscreverMensagem.Size = new System.Drawing.Size(236, 37);
@@ -213,7 +214,7 @@
             // bt_EnviaMensagem
             // 
             this.bt_EnviaMensagem.Location = new System.Drawing.Point(7, 300);
-            this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2);
             this.bt_EnviaMensagem.Name = "bt_EnviaMensagem";
             this.bt_EnviaMensagem.Size = new System.Drawing.Size(237, 35);
             this.bt_EnviaMensagem.TabIndex = 28;
@@ -262,7 +263,7 @@
             // btnGameStart
             // 
             this.btnGameStart.Location = new System.Drawing.Point(5, 114);
-            this.btnGameStart.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnGameStart.Margin = new System.Windows.Forms.Padding(2);
             this.btnGameStart.Name = "btnGameStart";
             this.btnGameStart.Size = new System.Drawing.Size(353, 35);
             this.btnGameStart.TabIndex = 36;
@@ -325,17 +326,17 @@
             0,
             0});
             // 
-            // label4
+            // lbBoasVindas
             // 
-            this.label4.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.ForeColor = System.Drawing.Color.White;
-            this.label4.Location = new System.Drawing.Point(12, 12);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(540, 39);
-            this.label4.TabIndex = 47;
-            this.label4.Text = "Bem-Vindo";
-            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lbBoasVindas.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.lbBoasVindas.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbBoasVindas.ForeColor = System.Drawing.Color.White;
+            this.lbBoasVindas.Location = new System.Drawing.Point(12, 12);
+            this.lbBoasVindas.Name = "lbBoasVindas";
+            this.lbBoasVindas.Size = new System.Drawing.Size(540, 39);
+            this.lbBoasVindas.TabIndex = 47;
+            this.lbBoasVindas.Text = "Bem-Vindo ao Jogo do Galo";
+            this.lbBoasVindas.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // dupSymbol
             // 
@@ -367,16 +368,27 @@
             this.button3.TabIndex = 49;
             this.button3.Text = "button3";
             this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // lbWinningCondition
+            // 
+            this.lbWinningCondition.AutoSize = true;
+            this.lbWinningCondition.Location = new System.Drawing.Point(95, 65);
+            this.lbWinningCondition.Name = "lbWinningCondition";
+            this.lbWinningCondition.Size = new System.Drawing.Size(35, 13);
+            this.lbWinningCondition.TabIndex = 50;
+            this.lbWinningCondition.Text = "label4";
+            this.lbWinningCondition.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lbWinningCondition.Visible = false;
             // 
             // JogoDoGalo_ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1127, 702);
+            this.Controls.Add(this.lbWinningCondition);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.label4);
+            this.Controls.Add(this.lbBoasVindas);
             this.Controls.Add(this.gbBoardDimension);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.gbPlayersBoard);
@@ -429,10 +441,11 @@
         private System.Windows.Forms.ListBox lbLoggedClients;
         private System.Windows.Forms.GroupBox gbBoardDimension;
         private System.Windows.Forms.NumericUpDown nudBoardDimension;
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label lbBoasVindas;
         private System.Windows.Forms.DomainUpDown dupSymbol;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Label lbWinningCondition;
     }
 }
 

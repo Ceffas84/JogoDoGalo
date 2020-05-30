@@ -47,7 +47,6 @@ namespace JogoDoGaloV1._0
 
         private Thread thread;
 
-        private bool Acknoledged = false;
         public JogoDoGalo_ClientForm()
         {
             InitializeComponent();
@@ -95,9 +94,9 @@ namespace JogoDoGaloV1._0
             //  USER_OPTION_1         => Receção do Start Game
             //  USER_OPTION_2         => Receção do Próximo jogador
             //  USER_OPTION_3         => Receção de Jogadas
-            //  USER_OPTION_4         => Receção de Game Over
+            //  USER_OPTION_4         => Receção de Game Over com vencedor
             //  USER_OPTION_5         => Receção de Jogadores Logados
-            //  USER_OPTION_6         =>
+            //  USER_OPTION_6         => Receção de Game Over Empatado
             //  USER_OPTION_7         =>
             //  USER_OPTION_8         => Receção de mensagens no chat
             //  USER_OPTION_9         => Receção de mensagens de Erro ou Sucesso
@@ -124,11 +123,12 @@ namespace JogoDoGaloV1._0
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_1:
+                            //usar par receber o game start
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
                                 int boardSize = symDecipherData[0];
                                 playerId = symDecipherData[1];
-                                Invoke(new Action(() => { DesenharTabuleiro(50, 100, 400, boardSize); }));
+                                Invoke(new Action(() => { DrawBoard(80, 79, 400, boardSize); }));
                             }
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
@@ -171,6 +171,11 @@ namespace JogoDoGaloV1._0
 
                             packet = protocolSI.Make(ProtocolSICmdType.ACK);
                             stream.Write(packet, 0, packet.Length);
+                            break;
+
+                        case ProtocolSICmdType.USER_OPTION_6:
+                            //usar para receber Game Over
+                            Invoke(new Action(() => { ShowGameOverByDraw(); }));
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_8:
@@ -238,6 +243,13 @@ namespace JogoDoGaloV1._0
             stream.Close();
         }
 
+        private void ShowGameOverByDraw()
+        {
+            gameDisplay.Text = "Este foi renhido! Terminou empatado.";
+            gameDisplay.BackColor = Color.Gray;
+            nudBoardDimension.Enabled = true;
+        }
+
         private void ShowWinner(byte[] symDecipherData)
         {
             int playerId = symDecipherData[0];
@@ -249,11 +261,15 @@ namespace JogoDoGaloV1._0
             if(this.playerId == playerId)
             {
                 gameDisplay.Text = string.Format("Parabéns, {0}! Ganhaste!", winnerName);
+                gameDisplay.BackColor = Color.Green;
             }
             else
             {
                 gameDisplay.Text = string.Format("Ups! Parece que o(a) {0} ganhou esta partida.", winnerName);
+                gameDisplay.BackColor = Color.Red;
             }
+
+            nudBoardDimension.Enabled = true;
         }
 
         private void checkServerResponse(int resultCode)
@@ -279,13 +295,16 @@ namespace JogoDoGaloV1._0
                     MessageBox.Show("Assinatura diginal inválida.", "Erro de Assinatura digital.");
                     break;
                 case 06:
-                    MessageBox.Show("O utilizador já se encontra logado noutra aplicaçáo cliente.", "Erro de utilizador.");
+                    MessageBox.Show("O utilizador já se encontra logado noutra aplicação cliente.", "Erro de utilizador.");
                     break;
                 case 10:
                     MessageBox.Show("Registado com sucesso! Faça login para se juntar a uma sala de jogo.", "Sucesso de Registo");
                     break;
                 case 11:
-                    MessageBox.Show("Logado com sucesso. Espere até que estejam dois jogadores na sala para começar o jogo.", "Sucesso de Login");
+                    lbBoasVindas.Text = string.Format("{0}, bem-vindo(a) ao Jogo do Galo!", tbUsername.Text);
+                    lbBoasVindas.BackColor = Color.DarkGreen;
+                    gameDisplay.Text = string.Format("{0}, Já está logado!", tbUsername.Text);
+                    //MessageBox.Show("Logado com sucesso. Espere até que estejam dois jogadores na sala para começar o jogo.", "Sucesso de Login");
                     break;
                 case 20:
                     MessageBox.Show("O jogo ainda não começou! Espere que estejam duas pessoas na sala para começar o jogo.", "Erro de utilizador");
@@ -307,6 +326,7 @@ namespace JogoDoGaloV1._0
             byte[] ack = protocolSI.Make(ProtocolSICmdType.ACK);
             networkStream.Write(ack, 0, ack.Length);
         }
+
         public void WaitForAck()
         {
             while (protocolSI.GetCmdType() != ProtocolSICmdType.ACK)
@@ -317,7 +337,7 @@ namespace JogoDoGaloV1._0
 
         private void button1_Click(object sender, EventArgs e)  //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
-            DesenharTabuleiro(80, 79, 400, decimal.ToInt32(nudBoardDimension.Value));
+            DrawBoard(80, 79, 400, decimal.ToInt32(nudBoardDimension.Value));
         }
 
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
@@ -407,14 +427,50 @@ namespace JogoDoGaloV1._0
             rtbMensagens.AppendText(message);
         }
 
-        private void DesenharTabuleiro(int offset_x, int offset_y, int size, int numButtons)
+        private string DetermineWinningCondition(int boardsize)
         {
+            
+            int winningCondition = 0;
+            switch (boardsize)
+            {
+                case 3:
+                    winningCondition = boardsize;
+                    break;
+                case 4:
+                case 5:
+                case 6:
+                    winningCondition = 4;
+                    break;
+                case 7:
+                case 8:
+                    winningCondition = 5;
+                    break;
+                case 9:
+                    winningCondition = 6;
+                    break;
+            }
+
+            string infoWinningCondition = string.Format("Num tabuleiro com {0} de dimensão, a condição de vitória é fazer {1} em linha.", boardsize, winningCondition);
+
+            return infoWinningCondition;
+        }
+
+        private void DrawBoard(int offset_x, int offset_y, int size, int boardsize)
+        {
+            DeleteBoard();
+
+            nudBoardDimension.Value = boardsize;
+            nudBoardDimension.Enabled = false;
+
+            lbWinningCondition.Text = DetermineWinningCondition(boardsize);
+            lbWinningCondition.Visible = true;
+
             gameBoard = new List<Button>();
             int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
-            int buttonSize = (size - (padding * (numButtons + 1))) / numButtons;
-            for (int J = 0; J < numButtons; J++)//numButtons; J++) 
+            int buttonSize = (size - (padding * (boardsize + 1))) / boardsize;
+            for (int J = 0; J < boardsize; J++)//numButtons; J++) 
             {
-                for (int I = 0; I < numButtons; I++)//((numButtons; I++)
+                for (int I = 0; I < boardsize; I++)//((numButtons; I++)
                 {
                     Button newButton = new Button();
                     newButton.Text = "";
@@ -429,10 +485,10 @@ namespace JogoDoGaloV1._0
 
                     gameBoard.Add(newButton);
                     this.Controls.Add(newButton);
-
                 }
-
             }
+
+            
         }
 
         private void ShowActivePlayer(int number)
@@ -522,6 +578,7 @@ namespace JogoDoGaloV1._0
                 }
             }
         }
+
         private void DeleteBoard()
         {
             if(gameBoard != null && gameBoard.Count > 0)
@@ -532,15 +589,6 @@ namespace JogoDoGaloV1._0
                 }
                 gameBoard.Clear();
             }
-        }
-        private void label5_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            DeleteBoard();
         }
     }
 }
