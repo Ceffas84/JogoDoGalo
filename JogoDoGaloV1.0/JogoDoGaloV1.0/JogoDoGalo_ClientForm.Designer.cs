@@ -1,4 +1,4 @@
-﻿namespace JogoDoGaloV1._0
+namespace JogoDoGaloV1._0
 {
     partial class JogoDoGalo_ClientForm
     {
@@ -177,6 +177,7 @@
             this.tbPassword.Location = new System.Drawing.Point(70, 67);
             this.tbPassword.Margin = new System.Windows.Forms.Padding(2);
             this.tbPassword.Name = "tbPassword";
+            this.tbPassword.PasswordChar = '*';
             this.tbPassword.Size = new System.Drawing.Size(173, 20);
             this.tbPassword.TabIndex = 24;
             // 
