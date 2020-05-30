@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -175,11 +176,21 @@ namespace Server.Models
             byte[] listOfPlaysEmByte = TSCryptography.ObjectToByteArray(PlayList);
             return listOfPlaysEmByte;
         }
-
         public void RestartBoard()
         {
             this.PlayList.Clear();
             this.PlayCounter = 0;
+        }
+        public bool IsNumberPlaysOver()
+        {
+            if(!(PlayCounter < MaxNumberPlay))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

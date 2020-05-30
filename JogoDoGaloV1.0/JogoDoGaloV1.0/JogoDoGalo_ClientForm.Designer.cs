@@ -50,10 +50,19 @@
             this.btnGameStart = new System.Windows.Forms.Button();
             this.gbPlayersBoard = new System.Windows.Forms.GroupBox();
             this.lbLoggedClients = new System.Windows.Forms.ListBox();
+            this.gbBoardDimension = new System.Windows.Forms.GroupBox();
+            this.nudBoardDimension = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
+            this.dupSymbol = new System.Windows.Forms.DomainUpDown();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.button3 = new System.Windows.Forms.Button();
             this.gBoxServer.SuspendLayout();
             this.gBoxChat.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.gbPlayersBoard.SuspendLayout();
+            this.gbBoardDimension.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBoardDimension)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
@@ -86,9 +95,9 @@
             this.gBoxServer.Controls.Add(this.tbServidor);
             this.gBoxServer.Controls.Add(this.tbUsername);
             this.gBoxServer.Controls.Add(this.tbPassword);
-            this.gBoxServer.Location = new System.Drawing.Point(600, 12);
+            this.gBoxServer.Location = new System.Drawing.Point(564, 12);
             this.gBoxServer.Name = "gBoxServer";
-            this.gBoxServer.Size = new System.Drawing.Size(250, 154);
+            this.gBoxServer.Size = new System.Drawing.Size(250, 133);
             this.gBoxServer.TabIndex = 38;
             this.gBoxServer.TabStop = false;
             this.gBoxServer.Text = "Ligação";
@@ -96,7 +105,7 @@
             // btnSignup
             // 
             this.btnSignup.Location = new System.Drawing.Point(169, 91);
-            this.btnSignup.Margin = new System.Windows.Forms.Padding(2);
+            this.btnSignup.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnSignup.Name = "btnSignup";
             this.btnSignup.Size = new System.Drawing.Size(74, 29);
             this.btnSignup.TabIndex = 26;
@@ -107,7 +116,7 @@
             // btnLogin
             // 
             this.btnLogin.Location = new System.Drawing.Point(70, 91);
-            this.btnLogin.Margin = new System.Windows.Forms.Padding(2);
+            this.btnLogin.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnLogin.Name = "btnLogin";
             this.btnLogin.Size = new System.Drawing.Size(74, 29);
             this.btnLogin.TabIndex = 25;
@@ -131,9 +140,9 @@
             this.label2.Location = new System.Drawing.Point(5, 46);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(45, 13);
+            this.label2.Size = new System.Drawing.Size(55, 13);
             this.label2.TabIndex = 20;
-            this.label2.Text = "Jogador";
+            this.label2.Text = "Username";
             // 
             // label3
             // 
@@ -148,7 +157,7 @@
             // tbServidor
             // 
             this.tbServidor.Location = new System.Drawing.Point(70, 19);
-            this.tbServidor.Margin = new System.Windows.Forms.Padding(2);
+            this.tbServidor.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tbServidor.Name = "tbServidor";
             this.tbServidor.Size = new System.Drawing.Size(173, 20);
             this.tbServidor.TabIndex = 22;
@@ -157,7 +166,7 @@
             // tbUsername
             // 
             this.tbUsername.Location = new System.Drawing.Point(70, 43);
-            this.tbUsername.Margin = new System.Windows.Forms.Padding(2);
+            this.tbUsername.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tbUsername.Name = "tbUsername";
             this.tbUsername.Size = new System.Drawing.Size(173, 20);
             this.tbUsername.TabIndex = 23;
@@ -165,7 +174,7 @@
             // tbPassword
             // 
             this.tbPassword.Location = new System.Drawing.Point(70, 67);
-            this.tbPassword.Margin = new System.Windows.Forms.Padding(2);
+            this.tbPassword.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tbPassword.Name = "tbPassword";
             this.tbPassword.Size = new System.Drawing.Size(173, 20);
             this.tbPassword.TabIndex = 24;
@@ -175,9 +184,9 @@
             this.gBoxChat.Controls.Add(this.rtbMensagens);
             this.gBoxChat.Controls.Add(this.tbEscreverMensagem);
             this.gBoxChat.Controls.Add(this.bt_EnviaMensagem);
-            this.gBoxChat.Location = new System.Drawing.Point(600, 175);
+            this.gBoxChat.Location = new System.Drawing.Point(564, 146);
             this.gBoxChat.Name = "gBoxChat";
-            this.gBoxChat.Size = new System.Drawing.Size(250, 449);
+            this.gBoxChat.Size = new System.Drawing.Size(250, 340);
             this.gBoxChat.TabIndex = 39;
             this.gBoxChat.TabStop = false;
             this.gBoxChat.Text = "Chat Jogadores";
@@ -188,14 +197,14 @@
             this.rtbMensagens.Location = new System.Drawing.Point(8, 19);
             this.rtbMensagens.Name = "rtbMensagens";
             this.rtbMensagens.ReadOnly = true;
-            this.rtbMensagens.Size = new System.Drawing.Size(236, 344);
+            this.rtbMensagens.Size = new System.Drawing.Size(236, 235);
             this.rtbMensagens.TabIndex = 35;
             this.rtbMensagens.Text = "";
             // 
             // tbEscreverMensagem
             // 
-            this.tbEscreverMensagem.Location = new System.Drawing.Point(8, 368);
-            this.tbEscreverMensagem.Margin = new System.Windows.Forms.Padding(2);
+            this.tbEscreverMensagem.Location = new System.Drawing.Point(8, 259);
+            this.tbEscreverMensagem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tbEscreverMensagem.Multiline = true;
             this.tbEscreverMensagem.Name = "tbEscreverMensagem";
             this.tbEscreverMensagem.Size = new System.Drawing.Size(236, 37);
@@ -203,8 +212,8 @@
             // 
             // bt_EnviaMensagem
             // 
-            this.bt_EnviaMensagem.Location = new System.Drawing.Point(8, 409);
-            this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2);
+            this.bt_EnviaMensagem.Location = new System.Drawing.Point(7, 300);
+            this.bt_EnviaMensagem.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.bt_EnviaMensagem.Name = "bt_EnviaMensagem";
             this.bt_EnviaMensagem.Size = new System.Drawing.Size(237, 35);
             this.bt_EnviaMensagem.TabIndex = 28;
@@ -234,7 +243,7 @@
             this.gameDisplay.ForeColor = System.Drawing.Color.White;
             this.gameDisplay.Location = new System.Drawing.Point(6, 19);
             this.gameDisplay.Name = "gameDisplay";
-            this.gameDisplay.Size = new System.Drawing.Size(259, 91);
+            this.gameDisplay.Size = new System.Drawing.Size(352, 91);
             this.gameDisplay.TabIndex = 46;
             this.gameDisplay.Text = "Faça Login";
             this.gameDisplay.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -243,9 +252,9 @@
             // 
             this.groupBox2.Controls.Add(this.gameDisplay);
             this.groupBox2.Controls.Add(this.btnGameStart);
-            this.groupBox2.Location = new System.Drawing.Point(309, 470);
+            this.groupBox2.Location = new System.Drawing.Point(103, 492);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(270, 154);
+            this.groupBox2.Size = new System.Drawing.Size(364, 153);
             this.groupBox2.TabIndex = 45;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Informação de Jogo";
@@ -253,9 +262,9 @@
             // btnGameStart
             // 
             this.btnGameStart.Location = new System.Drawing.Point(5, 114);
-            this.btnGameStart.Margin = new System.Windows.Forms.Padding(2);
+            this.btnGameStart.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnGameStart.Name = "btnGameStart";
-            this.btnGameStart.Size = new System.Drawing.Size(260, 35);
+            this.btnGameStart.Size = new System.Drawing.Size(353, 35);
             this.btnGameStart.TabIndex = 36;
             this.btnGameStart.Text = "START";
             this.btnGameStart.UseVisualStyleBackColor = true;
@@ -264,9 +273,9 @@
             // gbPlayersBoard
             // 
             this.gbPlayersBoard.Controls.Add(this.lbLoggedClients);
-            this.gbPlayersBoard.Location = new System.Drawing.Point(18, 470);
+            this.gbPlayersBoard.Location = new System.Drawing.Point(564, 492);
             this.gbPlayersBoard.Name = "gbPlayersBoard";
-            this.gbPlayersBoard.Size = new System.Drawing.Size(270, 154);
+            this.gbPlayersBoard.Size = new System.Drawing.Size(250, 153);
             this.gbPlayersBoard.TabIndex = 44;
             this.gbPlayersBoard.TabStop = false;
             this.gbPlayersBoard.Text = "Jogadores Ligados";
@@ -276,14 +285,99 @@
             this.lbLoggedClients.FormattingEnabled = true;
             this.lbLoggedClients.Location = new System.Drawing.Point(6, 19);
             this.lbLoggedClients.Name = "lbLoggedClients";
-            this.lbLoggedClients.Size = new System.Drawing.Size(258, 121);
+            this.lbLoggedClients.Size = new System.Drawing.Size(237, 121);
             this.lbLoggedClients.TabIndex = 36;
+            // 
+            // gbBoardDimension
+            // 
+            this.gbBoardDimension.Controls.Add(this.nudBoardDimension);
+            this.gbBoardDimension.Location = new System.Drawing.Point(12, 492);
+            this.gbBoardDimension.Name = "gbBoardDimension";
+            this.gbBoardDimension.Size = new System.Drawing.Size(85, 153);
+            this.gbBoardDimension.TabIndex = 47;
+            this.gbBoardDimension.TabStop = false;
+            this.gbBoardDimension.Text = "Dimensão Tabuleiro";
+            // 
+            // nudBoardDimension
+            // 
+            this.nudBoardDimension.BackColor = System.Drawing.Color.Azure;
+            this.nudBoardDimension.Font = new System.Drawing.Font("Microsoft Sans Serif", 40F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.nudBoardDimension.ForeColor = System.Drawing.Color.Navy;
+            this.nudBoardDimension.Location = new System.Drawing.Point(6, 42);
+            this.nudBoardDimension.Maximum = new decimal(new int[] {
+            9,
+            0,
+            0,
+            0});
+            this.nudBoardDimension.Minimum = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            this.nudBoardDimension.Name = "nudBoardDimension";
+            this.nudBoardDimension.ReadOnly = true;
+            this.nudBoardDimension.Size = new System.Drawing.Size(73, 68);
+            this.nudBoardDimension.TabIndex = 46;
+            this.nudBoardDimension.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.nudBoardDimension.Value = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            // 
+            // label4
+            // 
+            this.label4.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.ForeColor = System.Drawing.Color.White;
+            this.label4.Location = new System.Drawing.Point(12, 12);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(540, 39);
+            this.label4.TabIndex = 47;
+            this.label4.Text = "Bem-Vindo";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // dupSymbol
+            // 
+            this.dupSymbol.BackColor = System.Drawing.Color.Honeydew;
+            this.dupSymbol.Font = new System.Drawing.Font("Microsoft Sans Serif", 40F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dupSymbol.ForeColor = System.Drawing.Color.DarkGreen;
+            this.dupSymbol.Location = new System.Drawing.Point(6, 42);
+            this.dupSymbol.Name = "dupSymbol";
+            this.dupSymbol.Size = new System.Drawing.Size(73, 68);
+            this.dupSymbol.TabIndex = 48;
+            this.dupSymbol.Text = "X";
+            this.dupSymbol.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.dupSymbol);
+            this.groupBox1.Location = new System.Drawing.Point(473, 492);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(85, 153);
+            this.groupBox1.TabIndex = 48;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Simbolo jogo";
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(1000, 371);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 49;
+            this.button3.Text = "button3";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // JogoDoGalo_ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1086, 703);
+            this.ClientSize = new System.Drawing.Size(1127, 702);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.gbBoardDimension);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.gbPlayersBoard);
             this.Controls.Add(this.gBoxChat);
@@ -301,6 +395,9 @@
             this.gBoxChat.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.gbPlayersBoard.ResumeLayout(false);
+            this.gbBoardDimension.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.nudBoardDimension)).EndInit();
+            this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -330,6 +427,12 @@
         private System.Windows.Forms.Button btnGameStart;
         private System.Windows.Forms.GroupBox gbPlayersBoard;
         private System.Windows.Forms.ListBox lbLoggedClients;
+        private System.Windows.Forms.GroupBox gbBoardDimension;
+        private System.Windows.Forms.NumericUpDown nudBoardDimension;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.DomainUpDown dupSymbol;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button button3;
     }
 }
 

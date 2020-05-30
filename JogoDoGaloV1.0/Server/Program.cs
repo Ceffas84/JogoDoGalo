@@ -398,51 +398,51 @@ namespace Server
                                 switch (lobby.gameRoom.GetGameState())
                                 {
                                     case GameState.OnGoing:
-
-                                        //1 - Verifica se a jogada recebida é válida
                                         
-                                        //gamePlay = symDecipherData;
                                         int coord_x = symDecipherData[0];
                                         int coord_y = symDecipherData[1];
 
-                                        if(!lobby.gameRoom.gameBoard.GamePlayExist(coord_x, coord_y))
+                                        //1 - Verifica se a jogada recebida é válida
+                                        if (!lobby.gameRoom.gameBoard.GamePlayExist(coord_x, coord_y))
                                         {
                                             //Adiciona a jogada
                                             lobby.gameRoom.gameBoard.AddGamePlay(coord_x, coord_y, client.playerID);
 
+                                            //Broadcast da jogada
+                                            objPlayList = lobby.gameRoom.gameBoard.GetListOfPlays();
+                                            BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
+
                                             //Verifica se o jogador Ganhou
                                             if (!lobby.gameRoom.gameBoard.CheckPLayerWins(client.playerID))
                                             {
-                                                //Broadcast da jogada
-                                                objPlayList = lobby.gameRoom.gameBoard.GetListOfPlays();
-                                                BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
+                                                //Verifica se o numero de jogadas terminou
+                                                if (lobby.gameRoom.gameBoard.IsNumberPlaysOver())
+                                                {
+                                                    //Brodcast GameOver - Draw
+                                                }
+                                                else
+                                                {
+                                                    //Atualiza o próximo jogador a jogar
+                                                    lobby.gameRoom.SetNextPlayer();
 
-                                                //Atualiza o próximo jogador a jogar
-                                                lobby.gameRoom.SetNextPlayer();
-
-                                                //Broadcast do Next Player                                            
-                                                //3 - Broadcast do ActivePLayer                                           
-                                                BroadCastData(lobby.gameRoom.GetCurrentPlayer(), ProtocolSICmdType.USER_OPTION_2);
+                                                    //Broadcast do Next Player                                            
+                                                    //3 - Broadcast do ActivePLayer                                           
+                                                    BroadCastData(lobby.gameRoom.GetCurrentPlayer(), ProtocolSICmdType.USER_OPTION_2);
+                                                }
                                             }
                                             else
                                             {
-                                                //Broadcast da jogada
-                                                objPlayList = lobby.gameRoom.gameBoard.GetListOfPlays();
-                                                BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
+                                                //Faz BroadCast do GameOver e do jogador que ganhou
+                                                BroadCastData(lobby.gameRoom.GetWinner(), ProtocolSICmdType.USER_OPTION_4);
 
                                                 //Atualiza o estado do jogo para GameOver
                                                 lobby.gameRoom.SetGameState(GameState.GameOver);
-
-                                                //Faz BroadCast do GameOver
-                                                BroadCastData(lobby.gameRoom.GetWinner(), ProtocolSICmdType.USER_OPTION_4);
-
                                             }
                                         }
                                         else
                                         {
                                             Console.WriteLine("Jogada enviada incorreta, jogada já existe");
                                         }
-
                                         break;
                                     case GameState.GameOver:
                                         Console.WriteLine("Please restart game to play");

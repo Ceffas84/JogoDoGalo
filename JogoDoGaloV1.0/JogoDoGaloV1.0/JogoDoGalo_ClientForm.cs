@@ -72,7 +72,9 @@ namespace JogoDoGaloV1._0
             byte[] packet = protocolSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
             networkStream.Write(packet, 0, packet.Length);
 
-
+            dupSymbol.Items.Add("X");
+            dupSymbol.Items.Add("$");
+            dupSymbol.Items.Add(":)");
         }
         private void ServerListener(object obj)
         {
@@ -116,7 +118,8 @@ namespace JogoDoGaloV1._0
                             break;
                         case ProtocolSICmdType.DIGITAL_SIGNATURE:
                             this.digitalSignature = protocolSI.GetData();
-
+                            packet = protocolSI.Make(ProtocolSICmdType.ACK);
+                            stream.Write(packet, 0, packet.Length);
                             Console.WriteLine("Assinatura digital recebida no cliente: {0}", Convert.ToBase64String(this.digitalSignature));
                             break;
 
@@ -314,7 +317,7 @@ namespace JogoDoGaloV1._0
 
         private void button1_Click(object sender, EventArgs e)  //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
         {
-            DesenharTabuleiro(50, 100, 400, 3);
+            DesenharTabuleiro(80, 79, 400, decimal.ToInt32(nudBoardDimension.Value));
         }
 
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
@@ -420,7 +423,10 @@ namespace JogoDoGaloV1._0
                     newButton.Width = buttonSize;
                     newButton.Height = buttonSize;
                     newButton.BackColor = System.Drawing.Color.LightGray;
+                    newButton.Font = new Font(newButton.Font.FontFamily, 40);
+                    
                     newButton.Click += BoardClick;
+
                     gameBoard.Add(newButton);
                     this.Controls.Add(newButton);
 
@@ -455,7 +461,7 @@ namespace JogoDoGaloV1._0
             {
                 btn.Enabled = isPlayerTurn;
 
-                if (btn.Text == "X" || btn.Text == "O")
+                if (btn.Text == dupSymbol.Text || btn.Text == "O")
                 {
                     btn.Enabled = false;
                 }
@@ -485,7 +491,7 @@ namespace JogoDoGaloV1._0
 
         private void btnGameStart_Click(object sender, EventArgs e)
         {
-            int boardSize = 3;
+            int boardSize = decimal.ToInt32(nudBoardDimension.Value);
 
             byte[] boardSizeEmBytes = new byte[1];
             boardSizeEmBytes[0] = (byte)boardSize;
@@ -507,7 +513,7 @@ namespace JogoDoGaloV1._0
 
                     if (gamePlay.playerId == playerId)
                     {
-                        btnAModificar.Text = "X";
+                        btnAModificar.Text = dupSymbol.Text;
                     }
                     else
                     {
@@ -515,6 +521,26 @@ namespace JogoDoGaloV1._0
                     }
                 }
             }
+        }
+        private void DeleteBoard()
+        {
+            if(gameBoard != null && gameBoard.Count > 0)
+            {
+                foreach (Button btn in gameBoard)
+                {
+                    btn.Dispose();
+                }
+                gameBoard.Clear();
+            }
+        }
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            DeleteBoard();
         }
     }
 }
