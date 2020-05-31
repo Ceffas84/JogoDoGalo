@@ -17,7 +17,7 @@ namespace JogoDoGaloV1._0
 {
     public partial class JogoDoGalo_ClientForm : Form
     {
-        private const int BREAK = 500; 
+        private const int BREAK = 100; 
 
         private TcpClient tcpClient;
         private IPEndPoint ipEndPoint;

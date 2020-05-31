@@ -64,7 +64,6 @@
     <Compile Include="Models\Authentication.cs" />
     <Compile Include="Models\GameBoard.cs" />
     <Compile Include="Models\GamePlay.cs" />
-    <Compile Include="Models\GamePlayer.cs" />
     <Compile Include="Models\GameRoom.cs" />
     <Compile Include="Models\Lobby.cs" />
     <Compile Include="Models\GameState.cs" />
