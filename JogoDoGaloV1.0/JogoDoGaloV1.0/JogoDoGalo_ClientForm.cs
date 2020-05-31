@@ -122,7 +122,7 @@ namespace JogoDoGaloV1._0
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_1:
-                            //usar par receber o game start
+                            //usar para receber o game start
                             if (tsCrypto.VerifyData(decryptedData, digitalSignature, serverPublicKey))
                             {
                                 int boardSize = symDecipherData[0];
@@ -265,6 +265,7 @@ namespace JogoDoGaloV1._0
             else
             {
                 gameDisplay.Text= "Estão dois jogadores na sala! Já podem começar comunicar pelo chat e iniciar um jogo!!!";
+                gameDisplay.BackColor = SystemColors.ActiveCaption;
             }         
         }
 
@@ -286,6 +287,7 @@ namespace JogoDoGaloV1._0
                 gameDisplay.Text = string.Format("O seu adversário, {0}, abandonou o jogo.", playerName);
                 gameDisplay.BackColor = Color.Gray;
             }
+            DeleteBoard();
         }
 
         private void ShowGameOverByDraw()
@@ -568,6 +570,14 @@ namespace JogoDoGaloV1._0
                 {
                     btn.Enabled = false;
                 }
+            }
+        }
+
+        private void BlockAllBoard()
+        {
+            foreach (Button btn in gameBoard)
+            {
+                btn.Enabled = false;
             }
         }
 

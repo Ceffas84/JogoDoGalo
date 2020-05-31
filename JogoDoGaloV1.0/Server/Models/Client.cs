@@ -27,9 +27,9 @@ namespace Server.Models
         {
 
         }
-        public int GetUserId()
+        public int GetPlayerId()
         {
-            return userId;
+            return playerID;
         }
         public override string ToString()
         {

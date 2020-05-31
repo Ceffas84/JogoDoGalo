@@ -212,7 +212,7 @@ namespace Server
                         if (!lobby.gameRoom.listPlayers.Contains(client))        //Verificamos se o client já está loggado no gameroom
                         {
                             int id = Auth.LoggedUserId(client.username);
-                            if(!lobby.gameRoom.listPlayers.Exists(x => x.GetUserId() == id))        //Verificamo se o user com que o cliente está a tentar aceder
+                            if(!lobby.gameRoom.listPlayers.Exists(x => x.GetPlayerId() == id))        //Verificamo se o user com que o cliente está a tentar aceder
                             {                                                                       //já está logado noutro client
                                 if (client.username.Length > 7 && client.password.Length > 7)
                                 {
@@ -519,31 +519,37 @@ namespace Server
                         break;
                 }
             }
-
-            byte[] gameOverByAbondon = lobby.gameRoom.GetPlayerWhoAbandoned();
-            BroadCastData(gameOverByAbondon, ProtocolSICmdType.USER_OPTION_7);
-
-            packet = protocolSI.Make(ProtocolSICmdType.EOT);
-            networkStream.Write(packet, 0, packet.Length);
-
-            client.TcpClient.Close();
-            networkStream.Close();
-
             //Quando o utilizador abandona o game room
             if (lobby.gameRoom.listPlayers.Contains(client))
             {
+                //Guardamoso player que saiu da sala e removemos da lista
+                byte[] gameOverByAbondon = Encoding.UTF8.GetBytes(client.username);
                 lobby.gameRoom.listPlayers.Remove(client);
-                Console.WriteLine("Player {0} left the game room" + Environment.NewLine, client.username);
 
                 //Broadcast dos utilizadores logados
                 byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
                 BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
+
+                if(lobby.gameRoom.GetGameState() == GameState.OnGoing)
+                {
+                    //Broadcast de game over by abandon
+                    BroadCastData(gameOverByAbondon, ProtocolSICmdType.USER_OPTION_7);
+
+                    lobby.gameRoom.SetGameState(GameState.GameOver);
+                }
+                
+                Console.WriteLine("Player {0} left the game room" + Environment.NewLine, client.username);
             }
             
             //Quando o utilizador abandona o lobby
             lobby.listClients.Remove(client);
             Console.WriteLine("Client_{0} left lobby" + Environment.NewLine, client.ClientID);
 
+            packet = protocolSI.Make(ProtocolSICmdType.EOT);
+            networkStream.Write(packet, 0, packet.Length);
+
+            client.TcpClient.Close();
+            networkStream.Close();
         }
 
         private void UpdateClientsList(Client clientToRemove)
