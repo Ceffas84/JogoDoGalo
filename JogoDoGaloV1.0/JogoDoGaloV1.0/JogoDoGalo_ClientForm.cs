@@ -96,7 +96,7 @@ namespace JogoDoGaloV1._0
             //  USER_OPTION_4         => Receção de Game Over com vencedor
             //  USER_OPTION_5         => Receção de Jogadores Logados
             //  USER_OPTION_6         => Receção de Game Over Empatado
-            //  USER_OPTION_7         =>
+            //  USER_OPTION_7         => Receção de Fim de jogo por abandono do adversário
             //  USER_OPTION_8         => Receção de mensagens no chat
             //  USER_OPTION_9         => Receção de mensagens de Erro ou Sucesso
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
@@ -175,8 +175,13 @@ namespace JogoDoGaloV1._0
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_6:
-                            //usar para receber Game Over
+                            //usar para receber Game Over por empate
                             Invoke(new Action(() => { ShowGameOverByDraw(); }));
+                            break;
+
+                        case ProtocolSICmdType.USER_OPTION_7:
+                            //usar para receber Game Over por abandono de um jogador
+                            Invoke(new Action(() => { ShowGameOverByAbandon(); }));
                             break;
 
                         case ProtocolSICmdType.USER_OPTION_8:
@@ -261,6 +266,26 @@ namespace JogoDoGaloV1._0
             {
                 gameDisplay.Text= "Estão dois jogadores na sala! Já podem começar comunicar pelo chat e iniciar um jogo!!!";
             }         
+        }
+
+        private void ShowGameOverByAbandon()
+        {
+            int playerId = symDecipherData[0];
+            byte[] playerNameArray = new byte[symDecipherData.Length - 1];
+            Array.Copy(symDecipherData, 1, playerNameArray, 0, symDecipherData.Length - 1);
+
+            string playerName = Encoding.UTF8.GetString(playerNameArray);
+
+            if (this.playerId == playerId)
+            {
+                gameDisplay.Text = string.Format("{0}, abandonou o jogo.", playerName);
+                gameDisplay.BackColor = Color.Gray;
+            }
+            else
+            {
+                gameDisplay.Text = string.Format("O seu adversário, {0}, abandonou o jogo.", playerName);
+                gameDisplay.BackColor = Color.Gray;
+            }
         }
 
         private void ShowGameOverByDraw()
@@ -359,6 +384,12 @@ namespace JogoDoGaloV1._0
             DrawBoard(80, 79, 400, decimal.ToInt32(nudBoardDimension.Value));
         }
 
+        private void button2_Click(object sender, EventArgs e) //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
+        {
+            JogoDoGalo_ClientForm newcliente = new JogoDoGalo_ClientForm();
+            newcliente.Show();
+        }
+
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
         {
             byte[] encryptedData = tsCrypto.SymetricEncryption(data);
@@ -402,12 +433,6 @@ namespace JogoDoGaloV1._0
             networkStream.Close();
             tcpClient.Close();
             
-        }
-
-        private void button2_Click(object sender, EventArgs e) //BUTÃO DE TESTE!!!! PARA APAGAR!!!!
-        {
-            JogoDoGalo_ClientForm newcliente = new JogoDoGalo_ClientForm();
-            newcliente.Show();
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
@@ -511,8 +536,6 @@ namespace JogoDoGaloV1._0
                     this.Controls.Add(newButton);
                 }
             }
-
-            
         }
 
         private void ShowActivePlayer(int number)

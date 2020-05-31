@@ -305,7 +305,10 @@ namespace Server
                         break;
                     case ProtocolSICmdType.USER_OPTION_5:
                         //logout
+                        
+                        
                         break;
+
                     case ProtocolSICmdType.USER_OPTION_6:                   //RECEÇÃO DE START GAME
                         int boardDimension = symDecipherData[0];
                         if (lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
@@ -516,6 +519,10 @@ namespace Server
                         break;
                 }
             }
+
+            byte[] gameOverByAbondon = lobby.gameRoom.GetPlayerWhoAbandoned();
+            BroadCastData(gameOverByAbondon, ProtocolSICmdType.USER_OPTION_7);
+
             packet = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(packet, 0, packet.Length);
 
@@ -537,6 +544,12 @@ namespace Server
             lobby.listClients.Remove(client);
             Console.WriteLine("Client_{0} left lobby" + Environment.NewLine, client.ClientID);
 
+        }
+
+        private void UpdateClientsList(Client clientToRemove)
+        {
+            lobby.gameRoom.listPlayers.Remove(clientToRemove);
+            lobby.listClients.Remove(clientToRemove);
         }
 
         /**
