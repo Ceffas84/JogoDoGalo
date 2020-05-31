@@ -43,6 +43,17 @@ namespace Server.Models
             winnerUsername.CopyTo(winner, 1);
             return winner;
         }
+
+        public byte[] GetPlayerWhoAbandoned()
+        {
+            byte[] playerWhoAbandoned = new byte[activePlayer.username.Length + 1];
+            playerWhoAbandoned[0] = GetCurrentPlayer()[0];
+            byte[] playerUserName = new byte[activePlayer.username.Length];
+            playerUserName = Encoding.UTF8.GetBytes(activePlayer.username);
+            playerUserName.CopyTo(playerWhoAbandoned, 1);
+            return playerWhoAbandoned;
+        }
+
         public void SetNextPlayer()
         {
             int playerid = listPlayers.IndexOf(activePlayer) == 0 ? 1 : 0;
