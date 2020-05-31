@@ -9,14 +9,33 @@ namespace Server.Models
 {
     public class Authentication
     {
+
         TSCryptography tsCrypto;
-        private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
-        //private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
-                                    
+        //private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
+        private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
+
+        /**
+         * <summary>    Construtor do objecto Authentication </summary>
+         *
+         * <remarks>    Ricardo Lopes, 31/05/2020. </remarks>
+         */
+
         public Authentication()
         {
             tsCrypto = new TSCryptography();
         }
+
+        /**
+         * <summary>    Função de verifica se as credenciais de um determinado user são válida </summary>
+         *
+         * <remarks>    Ricardo Lopes, 31/05/2020. </remarks>
+         *
+         * <param name="username">  O username a verificar. </param>
+         * <param name="password">  A password de acesso a verifica </param>
+         *
+         * <returns>    Retorna verdadeiro de as credenciais forem vális, falso se não forem válidas. </returns>
+         */
+
         public bool VerifyLogin(string username, string password)
         {
             SqlConnection conn = null;
@@ -24,10 +43,7 @@ namespace Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-
-                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf';Integrated Security=True");
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
@@ -65,14 +81,14 @@ namespace Server.Models
                 // Obter salt
                 byte[] saltStored = (byte[])reader["Salt"];
 
+                //Fecha ligação à base de dados
                 conn.Close();
 
-                byte[] hash = tsCrypto.GenerateSaltedHash(password, saltStored);
+                //Cria a slate hash da password enviada
+                byte[] saltedPasswordHash = tsCrypto.GenerateSaltedHash(password, saltStored);
 
-                //falta código
-
-
-                return saltedPasswordHashStored.SequenceEqual(hash);
+                //Retorna se a comparação da salted hash da password enviada é igual à salted hash da pasword armazenada
+                return saltedPasswordHashStored.SequenceEqual(saltedPasswordHash);
             }
             catch (Exception e)
             {
@@ -80,6 +96,20 @@ namespace Server.Models
                 return false;
             }
         }
+
+        /**
+         * <summary>    Função que regista um novo utilizador na base de dados </summary>
+         *
+         * <remarks>    Ricardo Lopes, 31/05/2020. </remarks>
+         *
+         * <exception cref="Exception"> Retorna uma exceção se existir algum erro na gravação do utilizador. </exception>
+         *
+         * <param name="username">              O username do novo utilizador. </param>
+         * <param name="saltedPasswordHash">    A salted hash da password (guarda-se na base de dados a hash de uma salted password, 
+         *                                      para que não existam hash's iguais na base de dados - caso sejamutilizadas passwords iguais) </param>
+         * <param name="salt">                  O salt da utilizado na . </param>
+         */
+
         public void Register(string username, byte[] saltedPasswordHash, byte[] salt)
         {
             SqlConnection conn = null;
@@ -87,17 +117,12 @@ namespace Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-
-                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='';Integrated Security=True");
-
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
 
                 // Declaração dos parâmetros do comando SQL
-                //SqlParameter paramId = new SqlParameter("@Id", default);
                 SqlParameter paramUsername = new SqlParameter("@Username", username);
                 SqlParameter paramSaltedPasswordHash = new SqlParameter("@SaltedPasswordHash", saltedPasswordHash);
                 SqlParameter paramSalt = new SqlParameter("@Salt", salt);
@@ -131,17 +156,25 @@ namespace Server.Models
                 throw new Exception("Error while inserting an user:" + e.Message);
             }
         }
-        public int LoggedUserId(string username)
+
+        /**
+         * <summary>    Função que verifica e devolve se o id de um utilizador através do username </summary>
+         *
+         * <remarks>    Ricardo Lopes, 31/05/2020. </remarks>
+         *
+         * <param name="username">  O username a procurar. </param>
+         *
+         * <returns>    Devolve o id do user com o username enviado por parametro. </returns>
+         */
+
+        public int UserId(string username)
         {
             SqlConnection conn = null;
             try
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-
-                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf';Integrated Security=True");
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
@@ -166,18 +199,20 @@ namespace Server.Models
 
                 if (!reader.HasRows)
                 {
-                    //throw new Exception("Error while trying to access an user");
+                    //Se a consulta não der resultados então devolve 0
                     return 0;
                 }
 
-                // Ler resultado da pesquisa
+                //Ler resultado da pesquisa
                 reader.Read();
 
-                // Obter o Id
+                // Obtém o Id 
                 int id = (int)reader["Id"];
 
+                //Fecha a ligação à base de dados
                 conn.Close();
 
+                //Retorna o id do user com o username enviado por parametro
                 return id;
             }
             catch (Exception e)
