@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.Remoting;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -47,8 +48,12 @@ namespace Server
                     //aceitar ligações
                     client.TcpClient = tcpListener.AcceptTcpClient();  // não sei como não aceitar a ligação
 
-                    lobby.listClients.Add(client);
-                    client.ClientID = lobby.listClients.Count();
+                    //lobby.listClients.Add(client);
+                    //client.ClientID = lobby.listClients.Count();
+                    
+
+                    client.ClientID = lobby.AddClient(client);
+
                     Console.WriteLine("Client_{0} connected" + Environment.NewLine, client.ClientID);
                     Console.WriteLine("Client_{0} added to the lobby!" + Environment.NewLine, client.ClientID);
 
@@ -211,7 +216,7 @@ namespace Server
 
                         if (!lobby.gameRoom.listPlayers.Contains(client))        //Verificamos se o client já está loggado no gameroom
                         {
-                            int id = Auth.LoggedUserId(client.username);
+                            int id = Auth.UserId(client.username);
                             if(!lobby.gameRoom.listPlayers.Exists(x => x.GetPlayerId() == id))        //Verificamo se o user com que o cliente está a tentar aceder
                             {                                                                       //já está logado noutro client
                                 if (client.username.Length > 7 && client.password.Length > 7)
@@ -226,8 +231,7 @@ namespace Server
                                             networkStream.Read(protocolSI.Buffer, 0, protocolSI.Buffer.Length);
                                         }
 
-                                        client.isLogged = true;
-                                        client.playerID = id; //lobby.gameRoom.listPlayers.Count + 1;
+                                        client.playerID = id;
                                         lobby.gameRoom.listPlayers.Add(client);
 
                                         //Broadcast dos utilizadores logados
@@ -523,7 +527,7 @@ namespace Server
             if (lobby.gameRoom.listPlayers.Contains(client))
             {
                 //Guardamoso player que saiu da sala e removemos da lista
-                byte[] gameOverByAbondon = Encoding.UTF8.GetBytes(client.username);
+                byte[] gameOverByAbondon = lobby.gameRoom.GetPlayerWhoAbandoned();
                 lobby.gameRoom.listPlayers.Remove(client);
 
                 //Broadcast dos utilizadores logados
@@ -547,25 +551,11 @@ namespace Server
 
             packet = protocolSI.Make(ProtocolSICmdType.EOT);
             networkStream.Write(packet, 0, packet.Length);
+            Thread.Sleep(1000);
 
             client.TcpClient.Close();
             networkStream.Close();
         }
-
-        private void UpdateClientsList(Client clientToRemove)
-        {
-            lobby.gameRoom.listPlayers.Remove(clientToRemove);
-            lobby.listClients.Remove(clientToRemove);
-        }
-
-        /**
-         * <summary>    Encrypts a sign and send protocol. </summary>
-         *
-         * <remarks>    Simão Pedro, 27/05/2020. </remarks>
-         *
-         * <param name="data">      The data. </param>
-         * <param name="cmdType">   Type of the command. </param>
-         */
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType cmdType)
         {
             encryptedData = tsCrypto.SymetricEncryption(data);
