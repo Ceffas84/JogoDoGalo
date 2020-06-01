@@ -145,6 +145,7 @@ namespace Server
                         this.symDecipherData = decryptedData;
 
                         Console.WriteLine("SymCipherData recebida no servidor: {0}", Encoding.UTF8.GetString(this.symDecipherData));
+
                         packet = protocolSI.Make(ProtocolSICmdType.ACK);    
                         networkStream.Write(packet, 0, packet.Length);
                         networkStream.Flush();

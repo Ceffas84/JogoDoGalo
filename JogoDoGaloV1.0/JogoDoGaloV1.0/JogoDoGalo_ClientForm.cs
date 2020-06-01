@@ -37,6 +37,8 @@ namespace JogoDoGaloV1._0
         private byte[] decryptedData;
         private byte[] packet;
 
+        private bool Ack;
+
         private delegate void SafeCallDelegate(string text);
         //private delegate void SafeCallDelegate(int number);
         string msgRecebida;
@@ -73,6 +75,8 @@ namespace JogoDoGaloV1._0
             dupSymbol.Items.Add("X");
             dupSymbol.Items.Add("$");
             dupSymbol.Items.Add(":)");
+
+            Ack = false;
         }
         private void ServerListener(object obj)
         {
@@ -238,6 +242,9 @@ namespace JogoDoGaloV1._0
                             SendAcknowledged(protocolSI, stream);
                             Invoke(new Action(() => { Console.WriteLine("Recebido IV: {0}", Convert.ToBase64String(decryptedIV)); }));
                             break;
+                        case ProtocolSICmdType.ACK:
+                            Ack = true;
+                            break;
                     }
                 }
                 catch(Exception ex)
@@ -395,12 +402,31 @@ namespace JogoDoGaloV1._0
 
         private void EncryptSignAndSendProtocol(byte[] data, ProtocolSICmdType protocolCmd)
         {
+            int count;
             byte[] encryptedData = tsCrypto.SymetricEncryption(data);
             byte[] packet = protocolSI.Make(ProtocolSICmdType.SYM_CIPHER_DATA, encryptedData);
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Data encryptada enviada do cliente: {0}", Encoding.UTF8.GetString(data));
-            Thread.Sleep(BREAK);
+            //Thread.Sleep(BREAK);
+
+            Ack = false;
+            count = 0;
+            while (count < 1000 && !Ack)
+            {
+                Thread.Sleep(10);
+                count += 10;
+            }
+            Console.WriteLine("Count: {0}, Ack: {1}", count, Ack);
+            Ack = false;
+            Console.WriteLine("Ack: {0}", Ack);
+
+            if (count == 1000)
+            {
+                MessageBox.Show("Ligação incompleta");
+                return;
+            }
+
 
             //Cria e envia a assinatura digital da menssagem
             byte[] digitalSignature = tsCrypto.SignData(data, privateKey);
@@ -408,15 +434,30 @@ namespace JogoDoGaloV1._0
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Assinatura digital enviada do cliente: {0}", Convert.ToBase64String(digitalSignature));
-            Thread.Sleep(BREAK);
+            //Thread.Sleep(BREAK);
+
+            Ack = false;
+            count = 0;
+            while (count < 1000 && !Ack)
+            {
+                Thread.Sleep(10);
+                count += 10;
+            }
+            Console.WriteLine("Count: {0}, Ack: {1}", count, Ack);
+            Ack = false;
+            Console.WriteLine("Ack: {0}", Ack);
+
+            if (count == 1000)
+            {
+                MessageBox.Show("Ligação incompleta");
+                return;
+            }
 
             //Envia o Protocol de comando
             packet = protocolSI.Make(protocolCmd);
             networkStream.Write(packet, 0, packet.Length);
             networkStream.Flush();
             Console.WriteLine("Comando enviado do cliente: {0}", protocolCmd);
-            Thread.Sleep(BREAK);
-
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
