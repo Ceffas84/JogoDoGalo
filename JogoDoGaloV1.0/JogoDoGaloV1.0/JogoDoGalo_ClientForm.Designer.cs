@@ -298,6 +298,7 @@
             this.gbBoardDimension.Size = new System.Drawing.Size(85, 153);
             this.gbBoardDimension.TabIndex = 47;
             this.gbBoardDimension.TabStop = false;
+            this.gbBoardDimension.Tag = "";
             this.gbBoardDimension.Text = "Dimensão Tabuleiro";
             // 
             // nudBoardDimension
@@ -369,6 +370,7 @@
             this.button3.TabIndex = 49;
             this.button3.Text = "button3";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // lbWinningCondition
             // 

@@ -266,7 +266,8 @@ namespace JogoDoGaloV1._0
             {
                 gameDisplay.Text= "Estão dois jogadores na sala! Já podem começar comunicar pelo chat e iniciar um jogo!!!";
                 gameDisplay.BackColor = SystemColors.ActiveCaption;
-            }         
+            }
+            nudBoardDimension.Enabled = true;
         }
 
         private void ShowGameOverByAbandon()
@@ -501,7 +502,7 @@ namespace JogoDoGaloV1._0
                     break;
             }
 
-            string infoWinningCondition = string.Format("Num tabuleiro com {0} de dimensão, a condição de vitória é fazer {1} em linha.", boardsize, winningCondition);
+            string infoWinningCondition = string.Format("Num tabuleiro com {0} X {0} de dimensão, a condição de vitória é fazer {1} em linha.", boardsize, winningCondition);
 
             return infoWinningCondition;
         }
@@ -519,6 +520,8 @@ namespace JogoDoGaloV1._0
             gameBoard = new List<Button>();
             int padding = Convert.ToInt32(Math.Round(size * 0.02, MidpointRounding.AwayFromZero));
             int buttonSize = (size - (padding * (boardsize + 1))) / boardsize;
+            int captionSize = (buttonSize * 50) / 122;
+
             for (int J = 0; J < boardsize; J++)//numButtons; J++) 
             {
                 for (int I = 0; I < boardsize; I++)//((numButtons; I++)
@@ -530,10 +533,8 @@ namespace JogoDoGaloV1._0
                     newButton.Width = buttonSize;
                     newButton.Height = buttonSize;
                     newButton.BackColor = System.Drawing.Color.LightGray;
-                    newButton.Font = new Font(newButton.Font.FontFamily, 40);
-                    
+                    newButton.Font = new Font(newButton.Font.FontFamily, captionSize);
                     newButton.Click += BoardClick;
-
                     gameBoard.Add(newButton);
                     this.Controls.Add(newButton);
                 }
@@ -647,6 +648,11 @@ namespace JogoDoGaloV1._0
                 }
                 gameBoard.Clear();
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            DeleteBoard();
         }
     }
 }
