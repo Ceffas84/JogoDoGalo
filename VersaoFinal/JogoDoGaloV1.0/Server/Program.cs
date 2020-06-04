@@ -257,7 +257,7 @@ namespace Server
                                 objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                 tsProtocol.WaitForAck();
-                                Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                Console.WriteLine("Client_{0}: Assinatura diginal falhou no servidor." + Environment.NewLine, client.ClientID);
                             }
                             break;
 
@@ -311,7 +311,6 @@ namespace Server
                                         tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                         tsProtocol.WaitForAck();
                                         Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
-
                                     }
                                 }
                                 else
@@ -327,7 +326,7 @@ namespace Server
                                 objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                 tsProtocol.WaitForAck();
-                                Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                Console.WriteLine("Client_{0}: Digital signature fail." + Environment.NewLine, client.ClientID);
                             }
                             break;
                         case ProtocolSICmdType.USER_OPTION_5:
@@ -375,7 +374,7 @@ namespace Server
                                         objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGOUT_ERROR));
                                         tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                         tsProtocol.WaitForAck();
-                                        Console.WriteLine("Erro ao tentar fazer logout no servidor.");
+                                        Console.WriteLine("Client_{0}: ao tentar fazer logout no servidor." + Environment.NewLine, client.ClientID);
                                     }
                                 }
                                 else
@@ -383,7 +382,7 @@ namespace Server
                                     objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                     tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                     tsProtocol.WaitForAck();
-                                    Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                    Console.WriteLine("Client_{0}: Digital signature fail." + Environment.NewLine, client.ClientID);
                                 }
                             }
                             else
@@ -436,7 +435,6 @@ namespace Server
                                                 objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.GAME_ALREADY_RUNNING));
                                                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                                 tsProtocol.WaitForAck();
-                                                Console.WriteLine("Game already runnig!");
                                                 break;
 
                                             case GameState.GameOver:
@@ -466,7 +464,7 @@ namespace Server
                                     objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                     tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                     tsProtocol.WaitForAck();
-                                    Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                    Console.WriteLine("Client_{0}: Digital signature fail." + Environment.NewLine, client.ClientID);
                                 }
                             }
                             else
@@ -559,7 +557,7 @@ namespace Server
                                     objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                     tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                     tsProtocol.WaitForAck();
-                                    Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                    Console.WriteLine("Client_{0}: Digital signature fail." + Environment.NewLine, client.ClientID);
                                 }
                             }
                             else
@@ -589,7 +587,7 @@ namespace Server
                                     objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                     tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                     tsProtocol.WaitForAck();
-                                    Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                    Console.WriteLine("Client_{0}: Digital signature fail." + Environment.NewLine, client.ClientID);
                                 }
                             }
                             else
@@ -608,23 +606,20 @@ namespace Server
                             //Envia a public key
                             tsProtocol.SendProtocol(ProtocolSICmdType.PUBLIC_KEY, Program.SERVERPUBLICKEY);
                             tsProtocol.WaitForAck();
-
                             Console.WriteLine("Client_{0}: Public Key received" + Environment.NewLine, client.ClientID);
-                            Console.WriteLine("Publick Key Recebida: {0}" + Environment.NewLine, client.PublicKey);
 
                             //Constrói e envia para o cliente a secretKey encriptada com a chave pública
                             byte[] encryptedKey = tsCrypto.RsaEncryption(tsCrypto.GetSymKey(), client.PublicKey);
                             tsProtocol.SendProtocol(ProtocolSICmdType.SECRET_KEY, encryptedKey);
                             tsProtocol.WaitForAck();
-
-                            Console.WriteLine("Client_{0}: Generated and sent Symetric Key: {1}" + Environment.NewLine, client.ClientID, Convert.ToBase64String(tsCrypto.GetSymKey()));
+                            Console.WriteLine("Client_{0}: Generated and sent Symetric Key." + Environment.NewLine, client.ClientID);
 
                             //Constrói e envia para o cliente o vetor inicialização encriptado com a chave pública
                             byte[] encryptedIV = tsCrypto.RsaEncryption(tsCrypto.GetIV(), client.PublicKey);
                             tsProtocol.SendProtocol(ProtocolSICmdType.IV, encryptedIV);
                             tsProtocol.WaitForAck();
 
-                            Console.WriteLine("Client_{0}: Generated and sent Initialization Vector: {1}" + Environment.NewLine, client.ClientID, Convert.ToBase64String(tsCrypto.GetIV()));
+                            Console.WriteLine("Client_{0}: Generated and sent Initialization Vector." + Environment.NewLine, client.ClientID);
                             break;
                     }
                 }
@@ -699,7 +694,6 @@ namespace Server
                 }
                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_8, tsCryptoBroadCast, streamBroadCast, player_plus_message, Program.SERVERPRIVATEKEY);
                 tsProtocol.WaitForAck();
-                Console.WriteLine("Player {0}: Enviado Procolo => 8", player.username);
             }
         }
 
@@ -723,7 +717,6 @@ namespace Server
                 
                 tsProtocol.SendPacket(protocolSICmdType, tsCryptoBroadCast, streamBroadCast, data, Program.SERVERPRIVATEKEY);
                 tsProtocol.WaitForAck();
-                Console.WriteLine("PLayer {0}: Enviado Procolo => {1}", player.username, protocolSICmdType);
             }
         }
 
@@ -748,7 +741,6 @@ namespace Server
 
                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_1, tsCryptoBroadCast, streamBroadCast, decryptedData, Program.SERVERPRIVATEKEY);
                 tsProtocol.WaitForAck();
-                Console.WriteLine("Player: {0} : Enviado Procolo => USER_OPTION_1", player.username);
             }
         }
     }
