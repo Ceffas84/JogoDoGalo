@@ -64,6 +64,15 @@ namespace JogoDoGaloV1._0
             dupSymbol.Items.Add("$");
             dupSymbol.Items.Add(":)");
         }
+
+        /**
+         * <summary>    Server listener.
+         *              Método que corre na thread e recebe as respostas do servidor </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="obj">   The object. </param>
+         */
         private void ServerListener(object obj)
         {
             TcpClient tcpClient = (TcpClient)obj;
@@ -266,6 +275,13 @@ namespace JogoDoGaloV1._0
             stream.Close();
         }
 
+        /**
+         * <summary>    Updates the logged users na janela. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="gameRoomLoggedPlayers"> The game room logged players. </param>
+         */
         private void UpdateLoggedUsers(List<string> gameRoomLoggedPlayers)
         {
             lbLoggedClients.Items.Clear();
@@ -284,6 +300,13 @@ namespace JogoDoGaloV1._0
             gameDisplay.BackColor = SystemColors.ActiveCaption;
         }
 
+        /**
+         * <summary>    Shows the game over. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="gameOver">  The game over. </param>
+         */
         private void ShowGameOver(GameOver gameOver)
         {
             switch (gameOver.TypeGameOver)
@@ -322,6 +345,16 @@ namespace JogoDoGaloV1._0
             nudBoardDimension.Enabled = true;
             
         }
+
+        /**
+         * <summary>    Check server response.
+         *              Avalia qual o código de resposta que o servidor enviou.
+         *              Dependendo do código mostra uma mensagem ao utilizador.</summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="resultCode">    The result code. </param>
+         */
         private void checkServerResponse(int resultCode)
         {
             switch (resultCode)
@@ -394,11 +427,26 @@ namespace JogoDoGaloV1._0
             }
         }
 
+        /**
+         * <summary>    Event handler. Called by Form1 for form closed events. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="sender">    Source of the event. </param>
+         * <param name="e">         Form closed event information. </param>
+         */
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             CloseClient();
         }
 
+        /**
+         * <summary>    Closes the client.
+         *              Manda para o servidor um protocolSI do tipo End Of Transmission (EOT)
+         *              Fecha a stream e o tcpClient. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         */
         private void CloseClient()
         {
             //Preparar o envio da mensagem para desligar as ligações
@@ -412,6 +460,16 @@ namespace JogoDoGaloV1._0
             tcpClient.Close();
         }
 
+        /**
+         * <summary>    Event handler. Called by btnLogin for click events. 
+         *              Caso o utilizador não esteja logado, faz o pedido de login ao servidor.
+         *              Caso esteja logado, faz o pedido de logout ao servidor. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="sender">    Source of the event. </param>
+         * <param name="e">         Event information. </param>
+         */
         private void btnLogin_Click(object sender, EventArgs e)
         {
             if(btnLogin.Text == "LOGIN")
@@ -440,6 +498,15 @@ namespace JogoDoGaloV1._0
             }
         }
 
+        /**
+         * <summary>    Event handler. Called by btnSignup for click events. 
+         *              Faz o pedido de SignUp (registo) ao servidor. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="sender">    Source of the event. </param>
+         * <param name="e">         Event information. </param>
+         */
         private void btnSignup_Click(object sender, EventArgs e)
         {
             Credentials credentials = new Credentials(tbUsername.Text, tbPassword.Text);
@@ -454,6 +521,15 @@ namespace JogoDoGaloV1._0
             tbPassword.Clear();
         }
 
+        /**
+         * <summary>    Event handler. Called by bt_EnviaMensagem for click events. 
+         *              Envia uma mensagem para o servidor. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="sender">    Source of the event. </param>
+         * <param name="e">         Event information. </param>
+         */
         private void bt_EnviaMensagem_Click(object sender, EventArgs e)
         {
             byte[] decryptedData = Encoding.UTF8.GetBytes(tbEscreverMensagem.Text);
@@ -467,12 +543,30 @@ namespace JogoDoGaloV1._0
             tbEscreverMensagem.Clear();
         }
 
+        /**
+         * <summary>    Receive chat message. 
+         *              Recebe as mensagens do servidor que se destinam ao chat. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="message">   The message. </param>
+         */
         private void receiveChatMessage(string message)
         {
             message = message + Environment.NewLine;
             rtbMensagens.AppendText(message);
         }
 
+        /**
+         * <summary>    Determine winning condition. 
+         *              Dependendo do tamanho do tabuleiro, determina qual a condição de vitória. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="boardsize"> The boardsize. </param>
+         *
+         * <returns>    A string. </returns>
+         */
         private string DetermineWinningCondition(int boardsize)
         {
             
@@ -499,6 +593,20 @@ namespace JogoDoGaloV1._0
             return infoWinningCondition;
         }
 
+        /**
+         * <summary>    Draw board. 
+         *              Desenha na janela:
+         *                  - o tabuleuro de jogo na janela;   
+         *                  - o numeric up and down do tamanho do tabuleiro  
+         *                  - informação sobre a condição de vitória. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="offset_x">  The offset x coordinate. </param>
+         * <param name="offset_y">  The offset y coordinate. </param>
+         * <param name="size">      The size. </param>
+         * <param name="boardsize"> The boardsize. </param>
+         */
         private void DrawBoard(int offset_x, int offset_y, int size, int boardsize)
         {
             DeleteBoard();
@@ -529,11 +637,19 @@ namespace JogoDoGaloV1._0
                     gameBoard.Add(newButton);
                     this.Controls.Add(newButton);
                 }
-            }
-
-            
+            }  
         }
 
+        /**
+         * <summary>    Shows the active player. 
+         *              Altera os elementos gráficos
+         *              de modo a alertar o utilizador
+         *              para quando é ou não a sua vez de jogar. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="number">    Number of. </param>
+         */
         private void ShowActivePlayer(int number)
         {
             bool isPlayerTurn = playerId == number ? true : false;
@@ -554,6 +670,14 @@ namespace JogoDoGaloV1._0
             }
         }
 
+        /**
+         * <summary>    Block board. 
+         *              Bloqueia o tabuleiro de jogo. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="isPlayerTurn">  True if is player turn, false if not. </param>
+         */
         private void BlockBoard(bool isPlayerTurn)
         {
             foreach(Button btn in gameBoard)
@@ -567,6 +691,15 @@ namespace JogoDoGaloV1._0
             }
         }
 
+        /**
+         * <summary>    Board click. 
+         *              Regista a jogada do utilizador e envia-a para o servidor. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="sender">    Source of the event. </param>
+         * <param name="e">         Event information. </param>
+         */
         private void BoardClick(object sender, EventArgs e)
         {
             Button clickedButton = sender as Button;
@@ -585,6 +718,16 @@ namespace JogoDoGaloV1._0
             tsProtocol.SendProtocol(ProtocolSICmdType.USER_OPTION_7, packetByteArray);
         }
 
+        /**
+         * <summary>    Gets clicked button. 
+         *              Devolve as coordenadas do butão (do tabuleiro de jogo) que foi clicada pelo utilizador. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="clickedButton"> The clicked control. </param>
+         *
+         * <returns>    The clicked button. </returns>
+         */
         private List<int> GetClickedButton(Button clickedButton)
         {
             string[] a = clickedButton.Name.Split('_');
@@ -593,6 +736,16 @@ namespace JogoDoGaloV1._0
             coord.Add(int.Parse(a[1]));
             return coord;
         }
+
+        /**
+         * <summary>    Event handler. Called by btnGameStart for click events. 
+         *              Envia para o servido o pedido para iniciar uma partida. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="sender">    Source of the event. </param>
+         * <param name="e">         Event information. </param>
+         */
         private void btnGameStart_Click(object sender, EventArgs e)
         {
             int boardSize = decimal.ToInt32(nudBoardDimension.Value);
@@ -610,6 +763,14 @@ namespace JogoDoGaloV1._0
             tbPassword.Clear();
         }
 
+        /**
+         * <summary>    Draw plays. 
+         *              Desenha no tabuleiro de jogo todas as jogadas que já foram feitas durante o jogo. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="listOfGamePlays">   The list of game plays. </param>
+         */
         private void DrawPlays(List<GamePlay> listOfGamePlays)
         {
 
@@ -633,6 +794,13 @@ namespace JogoDoGaloV1._0
                 }
             }
         }
+
+        /**
+         * <summary>    Deletes the board. 
+         *              Apaga o tabuleiro de jogo. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         */
         private void DeleteBoard()
         {
             if(gameBoard != null && gameBoard.Count > 0)
