@@ -289,14 +289,14 @@ namespace JogoDoGaloV1._0
             switch (gameOver.TypeGameOver)
             {
                 case TypeGameOver.Winner:
-                    if (this.playerId == gameOver.WinnerId)
+                    if (this.playerId == gameOver.PlayerId)
                     {
-                        gameDisplay.Text = string.Format("Parabéns, {0}! Ganhaste!", gameOver.WinnerUsername);
+                        gameDisplay.Text = string.Format("Parabéns, {0}! Ganhaste!", gameOver.PlayerUsername);
                         gameDisplay.BackColor = Color.Green;
                     }
                     else
                     {
-                        gameDisplay.Text = string.Format("Ups! Parece que o(a) {0} ganhou esta partida.", gameOver.WinnerUsername);
+                        gameDisplay.Text = string.Format("Ups! Parece que o(a) {0} ganhou esta partida.", gameOver.PlayerUsername);
                         gameDisplay.BackColor = Color.Red;
                     }
                     break;
@@ -307,13 +307,13 @@ namespace JogoDoGaloV1._0
                     break;
 
                 case TypeGameOver.Abandon:
-                    if (this.playerId == gameOver.WinnerId)
+                    if (this.playerId == gameOver.PlayerId)
                     {
-                        gameDisplay.Text = string.Format("{0}, abandonou o jogo.", gameOver.WinnerUsername);
+                        gameDisplay.Text = string.Format("{0}, abandonou o jogo.", gameOver.PlayerUsername);
                     }
                     else
                     {
-                        gameDisplay.Text = string.Format("O seu adversário, {0}, abandonou o jogo.", gameOver.WinnerUsername);
+                        gameDisplay.Text = string.Format("O seu adversário, {0}, abandonou o jogo.", gameOver.PlayerUsername);
                     }
                     gameDisplay.BackColor = Color.Gray;
                     DeleteBoard();
