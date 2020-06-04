@@ -47,8 +47,7 @@ namespace Server
                     client.TcpClient = tcpListener.AcceptTcpClient();
 
                     //Adicionamos o cliente ao lobby
-                    lobby.listClients.Add(client);
-                    client.ClientID = lobby.listClients.Count();
+                    lobby.AddClient(client);
 
                     //Lança uma thread com um listner
                     ClientHandler clientHandler = new ClientHandler(lobby);
@@ -75,13 +74,8 @@ namespace Server
         private TSProtocol tsProtocol;
 
         private byte[] digitalSignature;
-        private byte[] symDecipherData;
-
-        private byte[] encryptedData;
         private byte[] decryptedData;
         
-
-
         public ClientHandler(Lobby lobby)
         {
             this.lobby = lobby;
@@ -101,14 +95,15 @@ namespace Server
             //Recebemos o user que efetuou ligação no servidor
             Client client = lobby.listClients[lobby.listClients.Count-1];
 
+            //Iniciamos um novo objeto de criptografia
             TSCryptography tsCrypto = new TSCryptography();
 
             //Atribuimos as credencias de criptografia simétrica ao client
             client.SymKey = tsCrypto.GetSymKey();
-            Console.WriteLine(Convert.ToBase64String(tsCrypto.GetSymKey()));
+            //Console.WriteLine(Convert.ToBase64String(tsCrypto.GetSymKey()));
             
             client.IV = tsCrypto.GetIV();
-            Console.WriteLine(Convert.ToBase64String(tsCrypto.GetIV()));
+            //Console.WriteLine(Convert.ToBase64String(tsCrypto.GetIV()));
 
             //Abrimos um novo canal de comunicação
             networkStream = client.TcpClient.GetStream();
@@ -116,30 +111,28 @@ namespace Server
             //Geramos o objeto TSProtocol para auxiliar as comunicações
             tsProtocol = new TSProtocol(networkStream);
 
-            byte[] objPlayList;
+            Packet packet;
             byte[] packetByteArray;
             byte[] objByteArray;
+
             byte[] salt;
             byte[] saltedHash;
-            Credentials credetials;
-            Packet packet;
+
             GamePlayer gamePlayer;
-            Response responseId;
 
-
-            //  **** TABELA DE UTILIZAÇÃO DE COMANDOS DO PROTOCOLSI ****
-
-            //  SYM_CIPHER_DATA       => Receção de menssagem encriptada
-            //  DIGITAL_SIGNATURE     => Receção de assinatura digital da mensagem enviada
             //
-            //  UserOption3           => Receção de pedido de login
-            //  UserOption4           => Receção de pedido de registo
-            //  UserOption5           => Receção de pedido de logout
-            //  UserOption6           => Receção de pedido de StartGame
-            //  UserOption7           => Receção de pedido de Jogada
-            //  UserOption8           => Receção de mensagens do Chat
+            //  **** TABELA DE UTILIZAÇÃO DE COMANDOS DO PROTOCOLSI ****
+            //
+            //  USER_OPTION_3           => Receção de pedido de login
+            //  USER_OPTION_4           => Receção de pedido de registo
+            //  USER_OPTION_5           => Receção de pedido de logout
+            //  USER_OPTION_6           => Receção de pedido de StartGame
+            //  USER_OPTION_7           => Receção de pedido de Jogada
+            //  USER_OPTION_8           => Receção de mensagens do Chat
             //  
-            //  PublickKey            => Receção da PublicKey do client
+            //  PUBLIC_KEY           => Receção da PublicKey do client
+            //
+
             while (protocolSI.GetCmdType() != ProtocolSICmdType.EOT)
             {
                 try
@@ -179,7 +172,7 @@ namespace Server
                             if (!lobby.gameRoom.listPlayers.Contains(client))
                             {
                                 //Verificamo se o user com que o cliente está a tentar aceder já está logado noutro cliente
-                                int id = Auth.LoggedUserId(client.username);
+                                int id = Auth.UserId(client.username);
                                 if (!lobby.gameRoom.listPlayers.Exists(x => x.GetPlayerId() == id))
                                 {
                                     if (client.username.Length > 7 && client.password.Length > 7)
@@ -331,19 +324,19 @@ namespace Server
 
                             packetByteArray = protocolSI.GetData();
                             packet = (Packet)TSCryptography.ByteArrayToObject(packetByteArray);
-                            symDecipherData = tsCrypto.SymetricDecryption(packet.EncryptedData);
+                            decryptedData = tsCrypto.SymetricDecryption(packet.EncryptedData);
                             digitalSignature = packet.DigitalSignature;
                             
                             //verificamos se o cliente está loggado no gameroom
                             if (lobby.gameRoom.listPlayers.Contains(client))
                             {
                                 //Verificamos de a assinatura digital confirma os dados enviados
-                                if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
+                                if (tsCrypto.VerifyData(decryptedData, digitalSignature, client.PublicKey))
                                 {
                                     //Verificamos se estão 2 jogadores na sala
                                     if (lobby.gameRoom.listPlayers.Count > 1) //---> Esta comparação devia ser o count == 2
                                     {
-                                        StartGame startGame = (StartGame)TSCryptography.ByteArrayToObject(symDecipherData);
+                                        StartGame startGame = (StartGame)TSCryptography.ByteArrayToObject(decryptedData);
 
                                         //Conforme o estado do jogo:
                                         switch (lobby.gameRoom.GetGameState())
@@ -413,20 +406,20 @@ namespace Server
 
                             packetByteArray = protocolSI.GetData();
                             packet = (Packet)TSCryptography.ByteArrayToObject(packetByteArray);
-                            symDecipherData = tsCrypto.SymetricDecryption(packet.EncryptedData);
+                            decryptedData = tsCrypto.SymetricDecryption(packet.EncryptedData);
                             digitalSignature = packet.DigitalSignature;
 
                             //Verificamos se o cliente está loggado no gameroom
                             if (lobby.gameRoom.listPlayers.Contains(client))
                             {
                                 //Verificamos de a assinatura digital confirma os dados enviados
-                                if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
+                                if (tsCrypto.VerifyData(decryptedData, digitalSignature, client.PublicKey))
                                 {
                                     //Conforme o estado do jogo:
                                     switch (lobby.gameRoom.GetGameState())
                                     {
                                         case GameState.OnGoing:
-                                            GamePlay gamePlay = (GamePlay)TSCryptography.ByteArrayToObject(symDecipherData);
+                                            GamePlay gamePlay = (GamePlay)TSCryptography.ByteArrayToObject(decryptedData);
 
                                             //Verifica se a jogada recebida é válida
                                             if (!lobby.gameRoom.gameBoard.GamePlayExist(gamePlay.Coord_x, gamePlay.Coord_y))
@@ -435,8 +428,8 @@ namespace Server
                                                 lobby.gameRoom.gameBoard.AddGamePlay(gamePlay.Coord_x, gamePlay.Coord_y, client.playerID);
 
                                                 //Broadcast da jogada
-                                                objPlayList = TSCryptography.ObjectToByteArray(lobby.gameRoom.gameBoard.GetListOfPlays());
-                                                BroadCastData(objPlayList, ProtocolSICmdType.USER_OPTION_3);
+                                                objByteArray = TSCryptography.ObjectToByteArray(lobby.gameRoom.gameBoard.GetListOfPlays());
+                                                BroadCastData(objByteArray, ProtocolSICmdType.USER_OPTION_3);
 
                                                 //Verifica se o jogador Ganhou
                                                 if (!lobby.gameRoom.gameBoard.CheckPLayerWins(client.playerID))
@@ -505,14 +498,14 @@ namespace Server
                             packetByteArray = protocolSI.GetData();
                             packet = (Packet)TSCryptography.ByteArrayToObject(packetByteArray);
 
-                            symDecipherData = tsCrypto.SymetricDecryption(packet.EncryptedData);
+                            decryptedData = tsCrypto.SymetricDecryption(packet.EncryptedData);
                             digitalSignature = packet.DigitalSignature;
 
                             if (lobby.gameRoom.listPlayers.Contains(client))        //verificamos se o cliente está loggado no gameroom
                             {
-                                if (tsCrypto.VerifyData(symDecipherData, digitalSignature, client.PublicKey))
+                                if (tsCrypto.VerifyData(decryptedData, digitalSignature, client.PublicKey))
                                 {
-                                    BroadCastChat(symDecipherData, client);
+                                    BroadCastChat(decryptedData, client);
                                 }
                                 else
                                 {

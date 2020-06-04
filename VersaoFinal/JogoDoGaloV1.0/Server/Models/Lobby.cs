@@ -16,5 +16,20 @@ namespace Server.Models
             listClients = new List<Client>();
             gameRoom = new GameRoom();
         }
+        public void AddClient(Client client)
+        {
+            int newId;
+            if (listClients.Count > 0)
+            {
+                newId = listClients[listClients.Count - 1].ClientID + 1;
+            }
+            else
+            {
+                newId = 1;
+            }
+            client.ClientID = newId;
+
+            listClients.Add(client);
+        }
     }
 }

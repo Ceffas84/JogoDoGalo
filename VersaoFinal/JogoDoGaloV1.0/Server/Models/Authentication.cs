@@ -131,7 +131,7 @@ namespace Server.Models
                 throw new Exception("Error while inserting an user:" + e.Message);
             }
         }
-        public int LoggedUserId(string username)
+        public int UserId(string username)
         {
             SqlConnection conn = null;
             try
