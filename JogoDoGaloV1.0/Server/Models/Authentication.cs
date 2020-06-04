@@ -11,8 +11,8 @@ namespace Server.Models
     {
 
         TSCryptography tsCrypto;
-        //private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
-        private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
+        private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
+        //private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
 
         /**
          * <summary>    Construtor do objecto Authentication </summary>
