@@ -191,8 +191,11 @@ namespace Server
                                 //Verificamos se a sala já tem 2 clientes
                                 if (!(lobby.gameRoom.listPlayers.Count < 2))
                                 {
+                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.ROOM_FULL));
+                                    tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                    tsProtocol.WaitForAck();
                                     Console.WriteLine("Numero máximo de jogadores na sala já atingido");
-                                    break;
+                                    continue;
                                 }
                                 //Verificamos se o client não está loggado no gameroom
                                 if (!lobby.gameRoom.listPlayers.Contains(client))

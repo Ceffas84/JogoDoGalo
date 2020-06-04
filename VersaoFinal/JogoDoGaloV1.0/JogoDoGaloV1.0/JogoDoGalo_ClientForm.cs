@@ -386,6 +386,9 @@ namespace JogoDoGaloV1._0
                 case 08:
                     MessageBox.Show("Erro ao tentar fazer logout no servidor.", "Erro do servidor.");
                     break;
+                case 09:
+                    MessageBox.Show("Sala de jogo cheia, tente novamente mais tarde.", "Erro do servidor.");
+                    break;
                 case 10:
                     MessageBox.Show("Registado com sucesso! Faça login para se juntar a uma sala de jogo.", "Sucesso de Registo");
                     break;

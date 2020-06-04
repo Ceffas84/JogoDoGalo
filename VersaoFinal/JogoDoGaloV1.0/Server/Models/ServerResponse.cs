@@ -23,6 +23,7 @@ namespace Server.Models
         LOGGED_IN_ANOTHER_CLIENT = 06,
         NOT_LOGGED_TO_CHAT = 07,
         LOGOUT_ERROR = 08,
+        ROOM_FULL = 09,
 
         REGISTER_SUCCESS = 10,
         LOGIN_SUCCESS = 11,
