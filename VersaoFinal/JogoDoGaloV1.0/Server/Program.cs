@@ -75,6 +75,8 @@ namespace Server
 
         private byte[] digitalSignature;
         private byte[] decryptedData;
+
+        private const string LOGOUT_STRING = "Deixem-me sair!";
         
         public ClientHandler(Lobby lobby)
         {
@@ -149,81 +151,91 @@ namespace Server
                             decryptedData = tsCrypto.SymetricDecryption(packet.EncryptedData);
                             digitalSignature = packet.DigitalSignature;
 
-                            Credentials credentials = (Credentials)TSCryptography.ByteArrayToObject(decryptedData);
-                            client.username = credentials.Username;
-                            client.password = Encoding.UTF8.GetBytes(credentials.Password);
-
-                            //Gera um slat e guarda-o no client
-                            salt = new byte[8];
-                            salt = tsCrypto.GenerateSalt();
-                            client.salt = salt;
-
-                            //Gera uma saltedhash da password e guarda-a no client
-                            saltedHash = tsCrypto.GenerateSaltedHash(Encoding.UTF8.GetString(client.password), salt);
-                            client.saltedPasswordHash = saltedHash;
-
-                            //Verificamos se a sala já tem 2 clientes
-                            if (!(lobby.gameRoom.listPlayers.Count < 2))
+                            if(tsCrypto.VerifyData(decryptedData, digitalSignature, client.PublicKey))
                             {
-                                Console.WriteLine("Numero máximo de jogadores na sala já atingido");
-                                break;
-                            }
-                            //Verificamos se o client não está loggado no gameroom
-                            if (!lobby.gameRoom.listPlayers.Contains(client))
-                            {
-                                //Verificamo se o user com que o cliente está a tentar aceder já está logado noutro cliente
-                                int id = Auth.UserId(client.username);
-                                if (!lobby.gameRoom.listPlayers.Exists(x => x.GetPlayerId() == id))
+                                Credentials credentials = (Credentials)TSCryptography.ByteArrayToObject(decryptedData);
+                                client.username = credentials.Username;
+                                client.password = Encoding.UTF8.GetBytes(credentials.Password);
+
+                                //Gera um slat e guarda-o no client
+                                salt = new byte[8];
+                                salt = tsCrypto.GenerateSalt();
+                                client.salt = salt;
+
+                                //Gera uma saltedhash da password e guarda-a no client
+                                saltedHash = tsCrypto.GenerateSaltedHash(Encoding.UTF8.GetString(client.password), salt);
+                                client.saltedPasswordHash = saltedHash;
+
+                                //Verificamos se a sala já tem 2 clientes
+                                if (!(lobby.gameRoom.listPlayers.Count < 2))
                                 {
-                                    if (client.username.Length > 7 && client.password.Length > 7)
+                                    Console.WriteLine("Numero máximo de jogadores na sala já atingido");
+                                    break;
+                                }
+                                //Verificamos se o client não está loggado no gameroom
+                                if (!lobby.gameRoom.listPlayers.Contains(client))
+                                {
+                                    //Verificamo se o user com que o cliente está a tentar aceder já está logado noutro cliente
+                                    int id = Auth.UserId(client.username);
+                                    if (!lobby.gameRoom.listPlayers.Exists(x => x.GetPlayerId() == id))
                                     {
-                                        if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
+                                        if (client.username.Length > 7 && client.password.Length > 7)
                                         {
+                                            if (Auth.VerifyLogin(client.username, Encoding.UTF8.GetString(client.password)))
+                                            {
 
-                                            objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGIN_SUCCESS));
-                                            tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
-                                            tsProtocol.WaitForAck();
+                                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGIN_SUCCESS));
+                                                tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                                tsProtocol.WaitForAck();
 
-                                            //Adiciona o cliente ao game room
-                                            client.playerID = id;
-                                            lobby.gameRoom.listPlayers.Add(client);
+                                                //Adiciona o cliente ao game room
+                                                client.playerID = id;
+                                                lobby.gameRoom.listPlayers.Add(client);
 
-                                            //Broadcast dos utilizadores logados
-                                            byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
-                                            BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
+                                                //Broadcast dos utilizadores logados
+                                                byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
+                                                BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
 
-                                            Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
+                                                Console.WriteLine("Client_{0}: {1} => login successfull" + Environment.NewLine, client.ClientID, client.username);
+                                            }
+                                            else
+                                            {
+                                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGIN_ERROR));
+                                                tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                                tsProtocol.WaitForAck();
+                                                Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
+                                            }
                                         }
                                         else
                                         {
-                                            objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGIN_ERROR));
+                                            objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH));
                                             tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                             tsProtocol.WaitForAck();
-                                            Console.WriteLine("Client_{0}: login unsuccessfull" + Environment.NewLine, client.ClientID);
+                                            Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
                                         }
                                     }
                                     else
                                     {
-                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH));
+                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGGED_IN_ANOTHER_CLIENT));
                                         tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                         tsProtocol.WaitForAck();
-                                        Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+                                        Console.WriteLine("Username => {0}: is already logged on another client" + Environment.NewLine, client.username);
                                     }
                                 }
                                 else
                                 {
-                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGGED_IN_ANOTHER_CLIENT));
+                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.ALREADY_LOGGED));
                                     tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                     tsProtocol.WaitForAck();
-                                    Console.WriteLine("Username => {0}: is already logged on another client" + Environment.NewLine, client.username);
+                                    Console.WriteLine("Client_{0}: is already logged" + Environment.NewLine, client.ClientID);
                                 }
                             }
                             else
                             {
-                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.ALREADY_LOGGED));
+                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                 tsProtocol.WaitForAck();
-                                Console.WriteLine("Client_{0}: is already logged" + Environment.NewLine, client.ClientID);
+                                Console.WriteLine("Assinatura diginal falhou no servidor.");
                             }
                             break;
 
@@ -236,85 +248,128 @@ namespace Server
                             decryptedData = tsCrypto.SymetricDecryption(packet.EncryptedData);
                             digitalSignature = packet.DigitalSignature;
 
-                            credentials = (Credentials)TSCryptography.ByteArrayToObject(decryptedData);
-
-                            //Gera um slat e guarda-o no client
-                            salt = new byte[8];
-                            salt = tsCrypto.GenerateSalt();
-
-                            //Gera uma saltedhash da password e guarda-a no client
-                            saltedHash = tsCrypto.GenerateSaltedHash(Encoding.UTF8.GetString(client.password), salt);
-
-                            //Verificamos se o cliente está loggado no gameroom
-                            if (!lobby.gameRoom.listPlayers.Contains(client))
+                            if(tsCrypto.VerifyData(decryptedData, digitalSignature, client.PublicKey))
                             {
-                                //Validamos o tamanho minimo do username e da password
-                                if (credentials.Username.Length > 7 && credentials.Password.Length > 7)
+                                Credentials credentials = (Credentials)TSCryptography.ByteArrayToObject(decryptedData);
+
+                                //Gera um slat e guarda-o no client
+                                salt = new byte[8];
+                                salt = tsCrypto.GenerateSalt();
+
+                                //Gera uma saltedhash da password e guarda-a no client
+                                saltedHash = tsCrypto.GenerateSaltedHash(Encoding.UTF8.GetString(client.password), salt);
+
+                                //Verificamos se o cliente está loggado no gameroom
+                                if (!lobby.gameRoom.listPlayers.Contains(client))
                                 {
-                                    try
+                                    //Validamos o tamanho minimo do username e da password
+                                    if (credentials.Username.Length > 7 && credentials.Password.Length > 7)
                                     {
-                                        Auth.Register(credentials.Username, saltedHash, salt);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        //tsProtocol.SendProtocol(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.REGISTER_ERROR);
-                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.REGISTER_ERROR));
+                                        try
+                                        {
+                                            Auth.Register(credentials.Username, saltedHash, salt);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            //tsProtocol.SendProtocol(ProtocolSICmdType.USER_OPTION_9, (int)ServerResponse.REGISTER_ERROR);
+                                            objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.REGISTER_ERROR));
+                                            tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                            tsProtocol.WaitForAck();
+                                            Console.WriteLine("Client_{0}: => {0}: register unsuccessfull", client.ClientID, client.username);
+                                            break;
+                                        }
+                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.REGISTER_SUCCESS));
                                         tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                         tsProtocol.WaitForAck();
-                                        Console.WriteLine("Client_{0}: => {0}: register unsuccessfull", client.ClientID, client.username);
-                                        break;
+                                        Console.WriteLine("Client_{0}: => {0}: register successfull", client.ClientID, client.username);
                                     }
-                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.REGISTER_SUCCESS));
-                                    tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
-                                    tsProtocol.WaitForAck();
-                                    Console.WriteLine("Client_{0}: => {0}: register successfull", client.ClientID, client.username);
+                                    else
+                                    {
+                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH));
+                                        tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                        tsProtocol.WaitForAck();
+                                        Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
+
+                                    }
                                 }
                                 else
                                 {
-                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.USERNAME_OR_PASSWORD_INVALID_LENGTH));
+                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.ALREADY_LOGGED));
                                     tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                     tsProtocol.WaitForAck();
-                                    Console.WriteLine("Client_{0}: username and password must be at least 8 characters long!" + Environment.NewLine, client.ClientID);
-
+                                    Console.WriteLine("Client_{0}: is already logged, please logout and then register a new user!" + Environment.NewLine, client.ClientID);
                                 }
                             }
                             else
                             {
-                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.ALREADY_LOGGED));
+                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
                                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                 tsProtocol.WaitForAck();
-                                Console.WriteLine("Client_{0}: is already logged, please logout and then register a new user!" + Environment.NewLine, client.ClientID);
+                                Console.WriteLine("Assinatura diginal falhou no servidor.");
                             }
-
                             break;
                         case ProtocolSICmdType.USER_OPTION_5:
                             //Receção de pedido de logout
+                            
+                            packetByteArray = protocolSI.GetData();
+                            packet = (Packet)TSCryptography.ByteArrayToObject(packetByteArray);
+                            decryptedData = tsCrypto.SymetricDecryption(packet.EncryptedData);
+                            digitalSignature = packet.DigitalSignature;
 
+                            string logoutRequest = Encoding.UTF8.GetString(decryptedData);
+                            Console.WriteLine(logoutRequest);
                             if (lobby.gameRoom.listPlayers.Contains(client))
                             {
-                                //Remove o cliente do game room
-                                lobby.gameRoom.listPlayers.Remove(client);
-                                Console.WriteLine("Player {0} left the game room" + Environment.NewLine, client.username);
+                                if(tsCrypto.VerifyData(decryptedData, digitalSignature, client.PublicKey))
+                                {
+                                    if(logoutRequest == LOGOUT_STRING)
+                                    {
+                                        //Remove o cliente do game room
+                                        lobby.gameRoom.listPlayers.Remove(client);
+                                        Console.WriteLine("Player {0} left the game room" + Environment.NewLine, client.username);
 
-                                //Broadcast dos utilizadores logados
-                                byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
-                                BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
+                                        //Broadcast dos utilizadores logados
+                                        byte[] objectArrayBytes = TSCryptography.ObjectToByteArray(lobby.gameRoom.GetPlayersList());
+                                        BroadCastData(objectArrayBytes, ProtocolSICmdType.USER_OPTION_5);
 
 
-                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGOUT));
+                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGOUT_SUCCESS));
+                                        tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                        tsProtocol.WaitForAck();
+                                        Console.WriteLine("Client_{0}: as logged out" + Environment.NewLine, client.ClientID);
+
+                                        if (lobby.gameRoom.GetGameState() == GameState.OnGoing)
+                                        {
+                                            //Broadcast de GameOver by abandon
+                                            GameOver gameOver = new GameOver(TypeGameOver.Abandon, client.playerID, client.username);
+                                            objByteArray = TSCryptography.ObjectToByteArray(gameOver);
+                                            BroadCastData(objByteArray, ProtocolSICmdType.USER_OPTION_4);
+
+                                            lobby.gameRoom.SetGameState(GameState.GameOver);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.LOGOUT_ERROR));
+                                        tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                        tsProtocol.WaitForAck();
+                                        Console.WriteLine("Erro ao tentar fazer logout no servidor.");
+                                    }
+                                }
+                                else
+                                {
+                                    objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.INVALID_DIGITAL_SIGNATURE));
+                                    tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
+                                    tsProtocol.WaitForAck();
+                                    Console.WriteLine("Assinatura diginal falhou no servidor.");
+                                }
+                            }
+                            else
+                            {
+                                objByteArray = TSCryptography.ObjectToByteArray(new Response((int)ServerResponse.NOT_LOGGED_TO_START_GAME));
                                 tsProtocol.SendPacket(ProtocolSICmdType.USER_OPTION_9, tsCrypto, objByteArray, Program.SERVERPRIVATEKEY);
                                 tsProtocol.WaitForAck();
-                                Console.WriteLine("Client_{0}: as logged out" + Environment.NewLine, client.ClientID);
-
-                                if (lobby.gameRoom.GetGameState() == GameState.OnGoing)
-                                {
-                                    //Broadcast de GameOver by abandon
-                                    GameOver gameOver = new GameOver(TypeGameOver.Abandon, client.playerID, client.username);
-                                    objByteArray = TSCryptography.ObjectToByteArray(gameOver);
-                                    BroadCastData(objByteArray, ProtocolSICmdType.USER_OPTION_4);
-
-                                    lobby.gameRoom.SetGameState(GameState.GameOver);
-                                }
+                                Console.WriteLine("Client_{0}: is not logged in!" + Environment.NewLine, client.ClientID);
                             }
                             
                             break;

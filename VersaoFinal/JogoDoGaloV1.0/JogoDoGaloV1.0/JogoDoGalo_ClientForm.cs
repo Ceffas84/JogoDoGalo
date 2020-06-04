@@ -347,6 +347,12 @@ namespace JogoDoGaloV1._0
                 case 06:
                     MessageBox.Show("O utilizador já se encontra logado noutra aplicação cliente.", "Erro de utilizador.");
                     break;
+                case 07:
+                    MessageBox.Show("Para usar o chat tem de estar logado.", "Erro de Login.");
+                    break;
+                case 08:
+                    MessageBox.Show("Erro ao tentar fazer logout no servidor.", "Erro do servidor.");
+                    break;
                 case 10:
                     MessageBox.Show("Registado com sucesso! Faça login para se juntar a uma sala de jogo.", "Sucesso de Registo");
                     break;
@@ -423,7 +429,14 @@ namespace JogoDoGaloV1._0
             }
             else
             {
-                tsProtocol.SendProtocol(ProtocolSICmdType.USER_OPTION_5);
+                string logoutRequest = "Deixem-me sair!";
+                byte[] logoutRequestBytes = Encoding.UTF8.GetBytes(logoutRequest);
+
+                byte[] encryptedData = tsCryptography.SymetricEncryption(logoutRequestBytes);
+                byte[] digitalSignature = tsCryptography.SignData(logoutRequestBytes, privateKey);
+                Packet packet = new Packet(encryptedData, digitalSignature);
+                byte[] packetByteArray = TSCryptography.ObjectToByteArray(packet);
+                tsProtocol.SendProtocol(ProtocolSICmdType.USER_OPTION_5, packetByteArray);
             }
         }
 

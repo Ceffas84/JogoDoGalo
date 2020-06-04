@@ -16,12 +16,11 @@ namespace Server.Models
         INVALID_DIGITAL_SIGNATURE = 05,
         LOGGED_IN_ANOTHER_CLIENT = 06,
         NOT_LOGGED_TO_CHAT = 07,
-
-
+        LOGOUT_ERROR = 08,
 
         REGISTER_SUCCESS = 10,
         LOGIN_SUCCESS = 11,
-        LOGOUT = 12,
+        LOGOUT_SUCCESS = 12,
 
         NOT_ENOUGH_PLAYERS = 20,
         GAME_ALREADY_RUNNING = 21, 
