@@ -63,6 +63,13 @@ namespace Server
             }
         }
     }
+
+    /**
+     * <summary>    A client handler.
+     *              Classe que isrá lidar com os clientes. </summary>
+     *
+     * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+     */
     class ClientHandler
     {
         Lobby lobby;
@@ -86,12 +93,27 @@ namespace Server
             this.protocolSI = new ProtocolSI();
         }
 
+        /**
+         * <summary>    Handles this object. 
+         *              Método que lança threads para lidar com cada cliente. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         */
         public void Handle()
         {
             Thread thread = new Thread(ClientListener);
             thread.Start(this.lobby);
         }
 
+        /**
+         * <summary>    Client listener.
+         *              Método invocado pela thread de cada cliente
+         *              responsável por tratar dos pedidos de cada cliente. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="obj">   The object. </param>
+         */
         public void ClientListener(object obj)
         {
             //Recebemos o user que efetuou ligação no servidor
@@ -642,6 +664,16 @@ namespace Server
             client.TcpClient.Close();
             networkStream.Close();
         }
+
+        /**
+         * <summary>    Broad cast chat. 
+         *              Método resposável por fazer o broadcast das mensagens de chat enviadas por cada cliente. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="data">              The data. </param>
+         * <param name="clientWhoSentMsg">  Message describing the client who sent. </param>
+         */
         private void BroadCastChat(byte[] data, Client clientWhoSentMsg)
         {
             string logEntry = string.Format(("{0} -> {1}: {2} " + Environment.NewLine), DateTime.Now.ToString(), clientWhoSentMsg.username, Encoding.UTF8.GetString(data));
@@ -670,6 +702,17 @@ namespace Server
                 Console.WriteLine("Player {0}: Enviado Procolo => 8", player.username);
             }
         }
+
+        /**
+         * <summary>    Broad cast data. 
+         *              Método responsável por fazer o broadcast de dados da aplicação.
+         *              Ex: Mensagens de erro ou de sucesso. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="data">              The data. </param>
+         * <param name="protocolSICmdType"> Type of the protocol SI command. </param>
+         */
         private void BroadCastData(byte[] data, ProtocolSICmdType protocolSICmdType)
         {
             foreach (Client player in lobby.gameRoom.listPlayers)
@@ -683,7 +726,15 @@ namespace Server
                 Console.WriteLine("PLayer {0}: Enviado Procolo => {1}", player.username, protocolSICmdType);
             }
         }
-       
+
+        /**
+         * <summary>    Broad cast star game. 
+         *              Método responsável por fazer o broadcast do ínicio de jogo. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="boardDimension">    The board dimension. </param>
+         */
         private void BroadCastStarGame(int boardDimension)
         {
             foreach (Client player in lobby.gameRoom.listPlayers)
