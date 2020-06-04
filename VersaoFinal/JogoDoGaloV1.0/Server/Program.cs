@@ -1,4 +1,4 @@
-﻿using EI.SI;
+using EI.SI;
 using Server.Models;
 using System;
 using System.Collections.Generic;

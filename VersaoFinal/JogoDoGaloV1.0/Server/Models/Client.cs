@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 namespace Server.Models
 {
     [Serializable]
+
+    /**
+     * <summary>    (Serializable) Class que representa o client. </summary>
+     *
+     * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+     */
+
     public class Client
     {
         public TcpClient TcpClient { get; set; }
@@ -27,10 +34,6 @@ namespace Server.Models
         public int GetPlayerId()
         {
             return playerID;
-        }
-        public override string ToString()
-        {
-            return string.Concat(ClientID);
         }
     }
 }

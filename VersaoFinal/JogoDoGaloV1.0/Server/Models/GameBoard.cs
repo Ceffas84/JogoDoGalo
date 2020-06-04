@@ -7,27 +7,63 @@ using System.Threading.Tasks;
 
 namespace Server.Models
 {
+    /**
+     * <summary>    Class que representa o tabuleiro de jogo, e todas
+     *              as suas propriedades. </summary>
+     *
+     * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+     */
+
     public class GameBoard
     {
         private int BoardDimension;
         private int SequenceSize;
         private int MaxNumberPlay;
         private List<GamePlay> PlayList;
-        private int PlayCounter;
+
+        /**
+         * <summary>    Constructor da Class GameBoard, inicializa um novo tabuleiro com </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="boardDimension">    Recebe a dimensão do tabuleiro a criar. </param>
+         */
+
         public GameBoard(int boardDimension)
         {
             BoardDimension = boardDimension;
             SequenceSize = SequenceSizeCalc(boardDimension);
             MaxNumberPlay = boardDimension * boardDimension;
             PlayList = new List<GamePlay>();
-            PlayCounter = 0;
         }
+
+        /**
+         * <summary>    Adiciona uma nova jogada à lista de jogadas </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="coord_x">   The coordinate x coordinate. </param>
+         * <param name="coord_y">   The coordinate y coordinate. </param>
+         * <param name="playerId">  Identifier for the player. </param>
+         */
+
         public void AddGamePlay(int coord_x, int coord_y, int playerId)
         {
             GamePlay gamePlay = new GamePlay(coord_x, coord_y, playerId);
             PlayList.Add(gamePlay);
-            PlayCounter++;
         }
+
+        /**
+         * <summary>    Função que verifica se um determinado jogador venceu a jogada
+         *              a sua ultima jogada introduzida. </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="playerId">  Recebe o Id do jogador a verificar se ganhou. </param>
+         *
+         * <returns>    Retorna verdadeiro de o jogador ganhou, e falso se não ganhou. </returns>
+         */
+
         public bool CheckPLayerWins(int playerId)
         {
             for (int offset_row = 0; offset_row <= BoardDimension - SequenceSize; offset_row++)
@@ -57,8 +93,6 @@ namespace Server.Models
 
                             }
                             //conta as marcações das diagonal direita
-                            //if (Y - offset_row == X - offset_col)
-                            //if (Y - offset_row == SequenceSize - offset_col - X - 1)
                             if (Y - offset_row == X - offset_col)
                             {
                                 if (GamePlayExist(X, Y) && PlayList[PlayId(X, Y)].playerId == playerId)
@@ -67,8 +101,6 @@ namespace Server.Models
                                 }
                             }
                             //conta as marcacoes da diagonal esquerda
-                            //if (Y - offset_row == X - offset_col)
-                            //if (Y - offset_row == SequenceSize - offset_col - X - 1)
                             if (Y - offset_row == (X - offset_col) + (1 - SequenceSize) + ((Y - offset_row)* 2))
                             {
                                 if (GamePlayExist(X, Y) && PlayList[PlayId(X, Y)].playerId == playerId)
@@ -76,7 +108,7 @@ namespace Server.Models
                                     contarDiagonalEsq++;
                                 }
                             }
-                            Console.WriteLine("OffSetRow: {0}, OffSet Col: {1}, Y: {2}, X: {3}  => Col: {4} Ln: {5} DD: {6} DE: {7}", offset_row, offset_col, Y, X, contarColuna, contarLinha, contarDiagonalDrt, contarDiagonalEsq);
+                            //Console.WriteLine("OffSetRow: {0}, OffSet Col: {1}, Y: {2}, X: {3}  => Col: {4} Ln: {5} DD: {6} DE: {7}", offset_row, offset_col, Y, X, contarColuna, contarLinha, contarDiagonalDrt, contarDiagonalEsq);
                         }
                         //Verifica se foi completada uma linha ou coluna
                         if (contarLinha == SequenceSize || contarColuna == SequenceSize)
@@ -94,6 +126,18 @@ namespace Server.Models
             }
             return false;
         }
+
+        /**
+         * <summary>    Função que verifica se uma jogada existe.  </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="coord_x">   Recebe a coordenada X. </param>
+         * <param name="coord_y">   Recebe a coordenada Y. </param>
+         *
+         * <returns>    True if it succeeds, false if it fails. </returns>
+         */
+
         public bool GamePlayExist(int coord_x, int coord_y)
         {
             foreach (GamePlay gamePLay in PlayList)
@@ -105,6 +149,18 @@ namespace Server.Models
             }
             return false;
         }
+
+        /**
+         * <summary>    Função que devolve o Id do jogador que fez uma determinda jogada. </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="coord_x">   Recebe a coordenada X. </param>
+         * <param name="coord_y">   Recebe a coordenada Y. </param>
+         *
+         * <returns>    An int. </returns>
+         */
+
         private int PlayId(int coord_x, int coord_y)
         {
             for (int I = 0; I < PlayList.Count(); I++)
@@ -116,6 +172,18 @@ namespace Server.Models
             }
             return -1;
         }
+
+        /**
+         * <summary>    Função que aplica a regra de dimensão de sequencia em linha
+         *              para cada tamanho de tabuleiro </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="boardSize"> Recebe o tamanho do tabuleiro. </param>
+         *
+         * <returns>    Retorna o tamanho da sequência. </returns>
+         */
+
         private int SequenceSizeCalc(int boardSize)
         {
             int sequenceSize = new int();
@@ -139,23 +207,31 @@ namespace Server.Models
             }
             return sequenceSize;
         }
-        public int GetBoardDimension()
-        {
-            return this.BoardDimension;
-        }
+
+        /**
+         * <summary>    Função que retorna a lista de jogadas. </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <returns>    Retorna a lista de jogadas. </returns>
+         */
+
         public List<GamePlay> GetListOfPlays()
         {
             return PlayList;
         }
 
-        public void RestartBoard()
-        {
-            this.PlayList.Clear();
-            this.PlayCounter = 0;
-        }
+        /**
+         * <summary>    Função que questiona se . </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <returns>    True if number plays over, false if not. </returns>
+         */
+
         public bool IsNumberPlaysOver()
         {
-            if(!(PlayCounter < MaxNumberPlay))
+            if(!(PlayList.Count < MaxNumberPlay))
             {
                 return true;
             }

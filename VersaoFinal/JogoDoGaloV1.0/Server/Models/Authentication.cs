@@ -7,16 +7,43 @@ using System.Threading.Tasks;
 
 namespace Server.Models
 {
+    /**
+     * <summary>    Class que implementa funções de manupilação dos
+     *              dados de autenticação dos utilizadores do jogo  </summary>
+     *
+     * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+     */
+
     public class Authentication
     {
         TSCryptography tsCrypto;
         //private string FULLPATH = @"C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGaloV1.0\Server\ClientsDB.mdf";
         private string FULLPATH = @"C:\USERS\RICGL\SOURCE\REPOS\JOGODOGALO\JOGODOGALOV1.0\SERVER\CLIENTSDB.MDF";
-                                    
+
+        /**
+         * <summary>    Contrutor da Class Authentication que gera uma novo
+         *              objeto de Cripto</summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         */
+
         public Authentication()
         {
             tsCrypto = new TSCryptography();
         }
+
+        /**
+         * <summary>    Função que verifica se um username e uma password
+         *              pertencem e validam um utilizador válido </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="username">  O username do utilizador </param>
+         * <param name="password">  A password do utilizador </param>
+         *
+         * <returns>    Retorna verdadeiro se o utilizador foi autenticado, e false se não. </returns>
+         */
+
         public bool VerifyLogin(string username, string password)
         {
             SqlConnection conn = null;
@@ -24,10 +51,7 @@ namespace Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-
-                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf';Integrated Security=True");
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
@@ -49,7 +73,6 @@ namespace Server.Models
                 // Executar comando SQL
                 SqlDataReader reader = cmd.ExecuteReader();
 
-
                 if (!reader.HasRows)
                 {
                     //throw new Exception("Error while trying to access an user");
@@ -69,9 +92,8 @@ namespace Server.Models
 
                 byte[] hash = tsCrypto.GenerateSaltedHash(password, saltStored);
 
-                //falta código
-
-
+                //Compara a saltedhash guardada na BD com a salted hash gerada através da password submetida 
+                // e do salt que estava armazenado na BD
                 return saltedPasswordHashStored.SequenceEqual(hash);
             }
             catch (Exception e)
@@ -80,6 +102,19 @@ namespace Server.Models
                 return false;
             }
         }
+
+        /**
+         * <summary>    Funçaõ que faz o registo de um novo utilizador do jogo </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <exception cref="Exception"> Lança uma exceção quando ocorre um erro de gravação na base de dados. </exception>
+         *
+         * <param name="username">              Recebe o username do utilizador. </param>
+         * <param name="saltedPasswordHash">    Recebe a salted hash da password do utilizador. </param>
+         * <param name="salt">                  Recebe o salt utilizado na formação da saltedhash. </param>
+         */
+
         public void Register(string username, byte[] saltedPasswordHash, byte[] salt)
         {
             SqlConnection conn = null;
@@ -131,6 +166,18 @@ namespace Server.Models
                 throw new Exception("Error while inserting an user:" + e.Message);
             }
         }
+
+        /**
+         * <summary>    Função que devolve od Id de um utilizador através do
+         *              username </summary>
+         *
+         * <remarks>    Ricardo Lopes, 04/06/2020. </remarks>
+         *
+         * <param name="username">  Recebe o username a localizar na BD. </param>
+         *
+         * <returns>    Se encontrar o utilizador devolve o seu Id, caso contrário devolve 0. </returns>
+         */
+
         public int UserId(string username)
         {
             SqlConnection conn = null;
@@ -138,10 +185,7 @@ namespace Server.Models
             {
                 // Configurar ligação à Base de Dados
                 conn = new SqlConnection();
-
                 conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='" + FULLPATH + "';Integrated Security=True");
-
-                //conn.ConnectionString = String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\Simão Pedro\source\repos\JogoDoGalo\JogoDoGalo_Server\GaloDB.mdf';Integrated Security=True");
 
                 // Abrir ligação à Base de Dados
                 conn.Open();
@@ -162,7 +206,6 @@ namespace Server.Models
 
                 // Executar comando SQL
                 SqlDataReader reader = cmd.ExecuteReader();
-
 
                 if (!reader.HasRows)
                 {

@@ -15,7 +15,8 @@ namespace Server.Models
         private const int SALTSIZE = 8;
         private const int NUMBER_OF_ITERATIONS = 1000;
         private const int SECRET_SIZE = 8;
-        private string SECRET = "lal lala ";//GenerateRandomSecretString(SECRET_SIZE);
+        //private string SECRET = "lal lala ";  //GenerateRandomSecretString(SECRET_SIZE);
+        private string SECRET = GenerateRandomSecretString(SECRET_SIZE);
         private AesCryptoServiceProvider Aes;
         private RSACryptoServiceProvider Rsa;
         //
