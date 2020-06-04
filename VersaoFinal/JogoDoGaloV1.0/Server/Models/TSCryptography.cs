@@ -15,7 +15,7 @@ namespace Server.Models
         private const int SALTSIZE = 8;
         private const int NUMBER_OF_ITERATIONS = 1000;
         private const int SECRET_SIZE = 8;
-        private string SECRET = "lal lala ";//GenerateRandomSecretString(SECRET_SIZE);
+        private string SECRET = GenerateRandomSecretString(SECRET_SIZE);
         private AesCryptoServiceProvider Aes;
         private RSACryptoServiceProvider Rsa;
         //
@@ -42,6 +42,15 @@ namespace Server.Models
             Rsa = new RSACryptoServiceProvider();
         }
 
+        /**
+         * <summary>    Generates a random secret string. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="size">  The size. </param>
+         *
+         * <returns>    The random secret string. </returns>
+         */
         private static string GenerateRandomSecretString(int size)
         {
             StringBuilder builder = new StringBuilder();
@@ -237,6 +246,17 @@ namespace Server.Models
             Rfc2898DeriveBytes rfc2898 = new Rfc2898DeriveBytes(plainText, salt, NUMBER_OF_ITERATIONS);
             return rfc2898.GetBytes(32);
         }
+
+        /**
+         * <summary>    Object to byte array. 
+         *              Converte o objecto recebido em array de bytes. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="obj">   The object. </param>
+         *
+         * <returns>    A byte[]. </returns>
+         */
         public static byte[] ObjectToByteArray(object obj)
         {
             if (obj == null)
@@ -248,6 +268,17 @@ namespace Server.Models
                 return ms.ToArray();
             }
         }
+
+        /**
+         * <summary>    Byte array to object. 
+         *              Converte um array de bytes num objecto. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="byteArray"> Array of bytes. </param>
+         *
+         * <returns>    An Object. </returns>
+         */
         public static Object ByteArrayToObject(byte[] byteArray)
         {
             MemoryStream memoryStream = new MemoryStream();
@@ -257,6 +288,16 @@ namespace Server.Models
             Object obj = (Object)binaryFormatter.Deserialize(memoryStream);
             return obj;
         }
+
+        /**
+         * <summary>    Generates a hash. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="data">  The data. </param>
+         *
+         * <returns>    An array of byte. </returns>
+         */
         public static byte[] GenerateHash(byte[] data)
         {
             byte[] hash;
@@ -266,6 +307,17 @@ namespace Server.Models
             }
             return hash;
         }
+
+        /**
+         * <summary>    Sign hash. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="hash">  The hash. </param>
+         * <param name="key">   The key. </param>
+         *
+         * <returns>    A byte[]. </returns>
+         */
         public byte[] SignHash(byte[] hash, string key)
         {
             Rsa.FromXmlString(key);
@@ -277,6 +329,17 @@ namespace Server.Models
             }
             return signature;
         }
+
+        /**
+         * <summary>    Sign data. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="data">  The data. </param>
+         * <param name="key">   The key. </param>
+         *
+         * <returns>    A byte[]. </returns>
+         */
         public byte[] SignData(byte[] data, string key)
         {
             Rsa.FromXmlString(key);
@@ -288,11 +351,35 @@ namespace Server.Models
             }
             return signedData;
         }
+
+        /**
+         * <summary>    Verify hash. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="hash">      The hash. </param>
+         * <param name="signature"> The signature. </param>
+         * <param name="key">       The key. </param>
+         *
+         * <returns>    True if it succeeds, false if it fails. </returns>
+         */
         public bool VerifyHash(byte[] hash, byte[] signature, string key)
         {
             //SetRsaPublicKeyCryptography(key);
             return Rsa.VerifyHash(hash, CryptoConfig.MapNameToOID("SHA1"), signature);
         }
+
+        /**
+         * <summary>    Verify data. </summary>
+         *
+         * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+         *
+         * <param name="data">      The data. </param>
+         * <param name="signature"> The signature. </param>
+         * <param name="key">       The key. </param>
+         *
+         * <returns>    True if it succeeds, false if it fails. </returns>
+         */
         public bool VerifyData(byte[] data, byte[] signature, string key)
         {
             SetRsaPublicKeyCryptography(key);

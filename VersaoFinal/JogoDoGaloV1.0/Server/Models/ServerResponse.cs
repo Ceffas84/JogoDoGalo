@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace Server.Models
 {
+    /**
+     * <summary>    Values that represent server responses. 
+     *              Enumeração com códigos que representam mensagens de erro ou sucesso a enviar aos clientes. </summary>
+     *
+     * <remarks>    Simão Pedro, 04/06/2020. </remarks>
+     */
     public enum ServerResponse
     {
         REGISTER_ERROR = 00,
