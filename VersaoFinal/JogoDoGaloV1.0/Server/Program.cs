@@ -282,7 +282,7 @@ namespace Server
                                 salt = tsCrypto.GenerateSalt();
 
                                 //Gera uma saltedhash da password e guarda-a no client
-                                saltedHash = tsCrypto.GenerateSaltedHash(Encoding.UTF8.GetString(client.password), salt);
+                                saltedHash = tsCrypto.GenerateSaltedHash(credentials.Password, salt);
 
                                 //Verificamos se o cliente está loggado no gameroom
                                 if (!lobby.gameRoom.listPlayers.Contains(client))
