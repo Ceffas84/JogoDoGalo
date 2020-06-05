@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -257,6 +257,7 @@ namespace Server.Models
          *
          * <returns>    A byte[]. </returns>
          */
+        //Código pesquisado online em: https://stackoverflow.com/questions/4865104/convert-any-object-to-a-byte/45402065
         public static byte[] ObjectToByteArray(object obj)
         {
             if (obj == null)
@@ -279,6 +280,7 @@ namespace Server.Models
          *
          * <returns>    An Object. </returns>
          */
+        //Código pesquisado online em: https://stackoverflow.com/questions/4865104/convert-any-object-to-a-byte/45402065
         public static Object ByteArrayToObject(byte[] byteArray)
         {
             MemoryStream memoryStream = new MemoryStream();
